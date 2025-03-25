@@ -6,8 +6,8 @@ close all
 %% Load second-stage LD aggregates %%
 
 % address of second-stage data to be imported
-fdir = 'D:\Hamed\CND\PhD\My Articles\DLCA2\mainscatter_sigmapp10\FLAT';
-fname = 'LD2-26-Nov-2024_23-56-35_Final';
+fdir = 'F:\DLCA2\mainscatter_sigmapp13\SCAT';
+fname = 'LD2-25NOV24';
 
 % variables of interest in the data
 varnames = {'parsdata', 'ensdata', 'r_n_agg', 'fl'}; 
@@ -16,6 +16,8 @@ varnames = {'parsdata', 'ensdata', 'r_n_agg', 'fl'};
 for i = 1 : numel(varnames)
     load(strcat(fdir, '\', fname, '.mat'), varnames{i})
 end
+
+%% plot dpp vs. da as a function of time
 
 n_dat = length(r_n_agg); % number of data times to be plotted
 
@@ -92,6 +94,7 @@ lgd1 = legend(cat(1, plt1{:}), legtxt1, 'interpreter', 'latex',...
     'FontSize', 11, 'orientation', 'horizontal', 'NumColumns', 2,...
     'Location', 'southoutside');
 
+%% plot effective density as a function of time
 
 % initialize temporal rho vs dm figure
 f2 = figure(2);
@@ -187,11 +190,271 @@ lgd2 = legend(cat(1, plt2{:}), legtxt2, 'interpreter', 'latex',...
     'FontSize', 11, 'orientation', 'horizontal', 'NumColumns', 2,...
     'Location', 'southoutside');
 
-% save plots
-exportgraphics(f1, 'outputs\dpp-da-temporal.png',...
-    'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)
-exportgraphics(f2, 'outputs\rho-dm-temporal.png',...
-    'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)
+if ~isfolder('outputs\')
+    mkdir('outputs\'); % if it doesn't exist, create the directory
+end
 
+%% plot dpp vs. da as a function of hybridity
 
+% initialize figure 
+f3 = figure(3);
+f3.Position = [150, 150, 500, 600];
+set(f3, 'color', 'white')
 
+% define plotting variables
+p3 = cell(7,1);
+legtxt3 = cell(7,1);
+legtxt3{7} = 'Olfert $\&$ Rogak (2019)';
+kk3 = [1, 2, 3, 6, 11, inf];
+mc3 = colormap(turbo);
+ii3 = round(1 + (length(mc3) - 1) .* (0.05 : 0.9 / 4 : 0.95)');
+mc3 = mc3(ii3,:);
+mc3 = flip (mc3,1);
+ms3 = [10, 15, 12, 12, 10];
+mt3 = {'^', 's', 'p', 'h', 'o'};
+
+% plot universal correlation
+p3{7,1} = plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+
+% concatinate the data
+dpp_ens = cat(1,parsdata.dpp);
+dpp_ens = dpp_ens(:,1);
+nagg_ens = length(dpp_ens);
+da_ens = cat(1,parsdata.da);
+nhyb_ens = cat(1,parsdata.n_hyb);
+pp_ens = cat(1,parsdata.pp);
+
+% find and remove duplicates
+ij = nchoosek(1 : nagg_ens, 2);
+ind_flt = zeros(nagg_ens,1);
+for k = 1 : length(ij)
+    if isequal(sort(unique(pp_ens{ij(k,1)}(:,1))),...
+            sort(unique(pp_ens{ij(k,2)}(:,1))))
+        ind_flt(ij(k,2)) = 1;
+    end
+end
+ind_flt = logical(ind_flt);
+dpp_flt = dpp_ens(~ind_flt);
+da_flt = da_ens(~ind_flt);
+nhyb_flt = nhyb_ens(~ind_flt);
+pp_flt = pp_ens(~ind_flt);
+
+% initial ensemble average pp mean diameter
+pp1_ens = cell2mat(parsdata(1).pp);
+dpp1_ens = geomean(pp1_ens(:,2));
+sigmapp1_ens = UTILS.GEOSTD(pp1_ens(:,2));
+p3{6,1} = plot(da_uc, 1e9 * repelem(dpp1_ens, length(da_uc)),...
+    'Color', [0, 0, 0], 'LineStyle', ':', 'LineWidth', 2);
+legtxt3(6) = strcat('$\overline{d}_\mathrm{pp,ens}$ =', {' '},...
+    num2str(1e9 * dpp1_ens,'%.1f'), ' nm');
+
+iii = cell(5,1); % index sorting placeholder based on number of internal clusters
+
+for i = 1 : 5
+    iii{i} = (nhyb_flt >= kk3(i)) & (nhyb_flt < kk3(i+1));
+    
+    % plot dpp vs. da as a function of internal cluster counts
+    p3{i,1} = scatter(1e9 * da_flt(iii{i}), 1e9 * dpp_flt(iii{i}),...
+        ms3(i), mc3(i,:), mt3{i}, 'LineWidth', 1);
+    
+    % make legends
+    switch i
+        case {1,2}
+            legtxt3(i) = strcat('$n_{hyb}$ =',...
+                {' '}, num2str(kk3(i), '%d'));
+        case {3,4}
+            legtxt3(i) = strcat(num2str(kk3(i), '%d'), {' '},...
+                '$\leq n_{hyb} <$', {' '}, num2str(kk3(i+1), '%d'));
+        otherwise
+            legtxt3(i) = strcat('$n_{hyb} \geq$', {' '},...
+                num2str(kk3(i), '%d'));
+    end
+end
+
+box on
+xlim(dx1)
+ylim(dy1)
+set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+    'YScale', 'log', 'TickLabelInterpreter','latex')
+
+xlabel('$\overline{d}_\mathrm{a}$ [nm]', 'FontSize', 14, 'interpreter','latex')
+ylabel('$\overline{d}_\mathrm{pp}$ [nm]', 'FontSize', 14, 'interpreter', 'latex')
+
+lgd3 = legend(cat(1, p3{:})', cat(2,legtxt3(:)), 'Location',...
+    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'NumColumns', 2);
+
+%% plot effective density as a function of hybridity
+
+% initialize figure 
+f4 = figure(4);
+f4.Position = [200, 200, 500, 600];
+set(f4, 'color', 'white')
+
+% define plotting variables
+p4 = cell(6,1);
+legtxt4 = cell(6,1);
+legtxt4{6} = 'Olfert $\&$ Rogak (2019)';
+
+% plot universal correlation
+p4{6,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+
+% concatinate the data
+dm_ens = cat(1,dm{:});
+rho_eff_ens = cat(1,rho_eff{:});
+
+% remove duplicates
+dm_flt = dm_ens(~ind_flt);
+rho_eff_flt = rho_eff_ens(~ind_flt);
+
+% plot rho_eff vs. dm as a function of internal cluster counts
+for i = 1 : 5
+    p4{i,1} = scatter(1e9 * dm_flt(iii{i}), rho_eff_flt(iii{i}),...
+        ms3(i), mc3(i,:), mt3{i}, 'LineWidth', 1);   
+end
+
+box on
+xlim(dx2)
+ylim(dy2)
+set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+    'YScale', 'log', 'TickLabelInterpreter','latex')
+
+xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
+ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
+
+lgd4 = legend(cat(1, p4{:})', cat(2,legtxt3([1:end-2,end])), 'Location',...
+    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'NumColumns', 2);
+
+%% curve fit to effective density data (using bayesian regression)
+
+% initialize figure 
+f5 = figure(5);
+f5.Position = [250, 75, 500, 500];
+set(f5, 'color', 'white')
+
+% define plotting variables
+p5 = cell(3,1);
+legtxt5 = cell(3,1);
+legtxt5{3} = 'Olfert $\&$ Rogak (2019)';
+
+% plot universal correlation
+p5{3,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+
+% plot ensemble of simulation data
+legtxt5{1} = 'Langevin dynamics simulation';
+p5{1,1} = scatter(1e9 * dm_flt, rho_eff_flt, 10, hex2rgb('#B3C8CF'),...
+    'o', 'LineWidth', 1);
+
+% set appearances
+box on
+xlim(dx2)
+ylim(dy2)
+set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+    'YScale', 'log', 'TickLabelInterpreter','latex')
+
+xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
+ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
+
+% prepare predictors and response
+log_dm = log10(1e9 * dm_flt);
+y = log10(rho_eff_flt);
+
+X = [log_dm, log_dm.^2, log_dm.^3, log_dm.^4, nhyb_flt];  % adding...
+    % ...polynomial terms for better capturing of curvature
+
+% define prior
+p = size(X,2); % number of predictors (excluding intercept)
+Mu = zeros(p + 1, 1); % prior mean (intercept + p)
+V = 100 * eye(p + 1);  % prior covariance
+A = 3; B = 1; % inverse gamma prior on sigma^2
+
+% create semiconjugate prior model (Intercept = true)
+Mdl = semiconjugateblm(p, 'Intercept', true, 'Mu', Mu, 'V', V, 'A', A, ...
+    'B', B);
+
+% estimate posterior
+PosteriorMdl = estimate(Mdl, X, y);  % uses Gibbs sampling
+
+% get posterior samples
+B_samples = PosteriorMdl.BetaDraws;
+n_samples = 1000;
+
+% posterior mean and covariance
+Mu_post = mean(B_samples, 2);
+Sigma_post = cov(B_samples');
+
+% prediction setup
+x_fit = linspace(min(log_dm), max(log_dm), 500)';
+mu_group = mean(nhyb_flt);
+X_fit = [ones(size(x_fit)), x_fit, x_fit.^2, x_fit.^3, x_fit.^4,...
+    mu_group * ones(size(x_fit))];
+
+% predict y from all posterior samples
+y_pred_samples = X_fit * B_samples;
+
+% compute posterior predictive summary
+y_mean = mean(y_pred_samples, 2);
+y_lower = prctile(y_pred_samples, 2.5, 2);
+y_upper = prctile(y_pred_samples, 97.5, 2);
+
+% transform back to linear space
+dm_fit = 10.^x_fit;
+rho_fit_mean = 10.^y_mean;
+rho_fit_lower = 10.^y_lower;
+rho_fit_upper = 10.^y_upper;
+
+% plot fit on log-log axes
+p5{2,1} = loglog(dm_fit, rho_fit_mean, 'Color', hex2rgb('#51829B'),...
+    'LineWidth', 2);
+fill([dm_fit; flipud(dm_fit)], [rho_fit_lower; flipud(rho_fit_upper)], ...
+    hex2rgb('#51829B'), 'EdgeColor', 'none', 'FaceAlpha', 0.5);
+legtxt5{2} = 'Bayesian Posterior Mean';
+
+lgd5 = legend(cat(1, p5{:})', cat(2,legtxt5(:)), 'Location',...
+    'southwest', 'FontSize', 11, 'interpreter', 'latex');
+
+%% curvefit to mass-mobility exponent
+
+% Compute polynomial slopes at each x_fit using all posterior samples
+x = x_fit;  % x = log10(d_m), size [n_points x 1]
+n_points = length(x);
+n_samples = size(B_samples, 2);
+
+% Extract polynomial coefficients (skip intercept and hybrid term if present)
+% Assuming B_samples(2:6,:) = [b1; b2; b3; b4] rows
+b1 = B_samples(2, :);  % beta_1
+b2 = B_samples(3, :);  % beta_2
+b3 = B_samples(4, :);  % beta_3
+b4 = B_samples(5, :);  % beta_4
+
+% Evaluate derivative (slope) at each x_fit for each posterior sample
+alpha_samples = zeros(n_points, n_samples);
+
+for i = 1:n_samples
+    alpha_samples(:, i) = ...
+        b1(i) + 2 * b2(i) * x + 3 * b3(i) * x.^2 + 4 * b4(i) * x.^3;
+end
+
+% Posterior summary of slope (mass-mobility exponent)
+alpha_mean = mean(alpha_samples, 2);
+alpha_lower = prctile(alpha_samples, 2.5, 2);
+alpha_upper = prctile(alpha_samples, 97.5, 2);
+
+%% save plots
+exportgraphics(f1, 'outputs\dpp-da-temporal.jpg',...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f2, 'outputs\rho-dm-temporal.jpg',...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f3, 'outputs\dpp-da-hybrid.jpg',...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f4, 'outputs\rho-dm-hybrid.jpg',...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f5, 'outputs\rho-dm-fit.jpg',...
+    'BackgroundColor','none', 'Resolution', 300)
