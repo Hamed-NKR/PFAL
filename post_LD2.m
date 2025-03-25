@@ -2,20 +2,25 @@ clc
 clear
 clf('reset')
 close all
+warning('off')
 
 %% Load second-stage LD aggregates %%
 
-% address of second-stage data to be imported
-fdir = 'F:\DLCA2\mainscatter_sigmapp13\SCAT';
-fname = 'LD2-25NOV24';
+% address of second-stage langevin dynamics data to be imported
+fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\SCAT';
+fname_simul = 'LD2-25NOV24';
 
 % variables of interest in the data
 varnames = {'parsdata', 'ensdata', 'r_n_agg', 'fl'}; 
 
 % load simulated data
 for i = 1 : numel(varnames)
-    load(strcat(fdir, '\', fname, '.mat'), varnames{i})
+    load(strcat(fdir_simul, '\', fname_simul, '.mat'), varnames{i})
 end
+
+% address of experimental data for validation
+fdir_exp = 'F:\Experiment\Effective-Density-Compiled';
+fname_exp = 'Effective-Density-Compiled_17-Mar-2025_05-00-44';
 
 %% plot dpp vs. da as a function of time
 
@@ -90,9 +95,9 @@ ylabel('$d_\mathrm{pp}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
 box on
 
 % generate legends
-lgd1 = legend(cat(1, plt1{:}), legtxt1, 'interpreter', 'latex',...
+legend(cat(1, plt1{:}), legtxt1, 'interpreter', 'latex',...
     'FontSize', 11, 'orientation', 'horizontal', 'NumColumns', 2,...
-    'Location', 'southoutside');
+    'Location', 'southoutside')
 
 %% plot effective density as a function of time
 
@@ -186,9 +191,9 @@ ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
 box on
 
 % generate legends
-lgd2 = legend(cat(1, plt2{:}), legtxt2, 'interpreter', 'latex',...
+legend(cat(1, plt2{:}), legtxt2, 'interpreter', 'latex',...
     'FontSize', 11, 'orientation', 'horizontal', 'NumColumns', 2,...
-    'Location', 'southoutside');
+    'Location', 'southoutside')
 
 if ~isfolder('outputs\')
     mkdir('outputs\'); % if it doesn't exist, create the directory
@@ -266,10 +271,10 @@ for i = 1 : 5
                 {' '}, num2str(kk3(i), '%d'));
         case {3,4}
             legtxt3(i) = strcat(num2str(kk3(i), '%d'), {' '},...
-                '$\leq n_{hyb} <$', {' '}, num2str(kk3(i+1), '%d'));
+                '$\leq n_{hyb} \leq$', {' '}, num2str(kk3(i+1)-1, '%d'));
         otherwise
-            legtxt3(i) = strcat('$n_{hyb} \geq$', {' '},...
-                num2str(kk3(i), '%d'));
+            legtxt3(i) = strcat('$n_{hyb} >$', {' '},...
+                num2str(kk3(i)-1, '%d'));
     end
 end
 
@@ -282,9 +287,9 @@ set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
 xlabel('$\overline{d}_\mathrm{a}$ [nm]', 'FontSize', 14, 'interpreter','latex')
 ylabel('$\overline{d}_\mathrm{pp}$ [nm]', 'FontSize', 14, 'interpreter', 'latex')
 
-lgd3 = legend(cat(1, p3{:})', cat(2,legtxt3(:)), 'Location',...
+legend(cat(1, p3{:})', cat(2,legtxt3(:)), 'Location',...
     'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
-    'NumColumns', 2);
+    'NumColumns', 2)
 
 %% plot effective density as a function of hybridity
 
@@ -294,12 +299,12 @@ f4.Position = [200, 200, 500, 600];
 set(f4, 'color', 'white')
 
 % define plotting variables
-p4 = cell(6,1);
-legtxt4 = cell(6,1);
-legtxt4{6} = 'Olfert $\&$ Rogak (2019)';
+p4 = cell(7,1);
+legtxt4 = cell(7,1);
+legtxt4{7} = 'Olfert $\&$ Rogak (2019)';
 
 % plot universal correlation
-p4{6,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
+p4{7,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
     'LineStyle', '-.', 'LineWidth', 3);
 hold on
 
@@ -314,7 +319,9 @@ rho_eff_flt = rho_eff_ens(~ind_flt);
 % plot rho_eff vs. dm as a function of internal cluster counts
 for i = 1 : 5
     p4{i,1} = scatter(1e9 * dm_flt(iii{i}), rho_eff_flt(iii{i}),...
-        ms3(i), mc3(i,:), mt3{i}, 'LineWidth', 1);   
+        ms3(i), mc3(i,:), mt3{i}, 'LineWidth', 1);
+
+    legtxt4{i} = legtxt3{i};
 end
 
 box on
@@ -326,41 +333,10 @@ set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
 xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
 ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
 
-lgd4 = legend(cat(1, p4{:})', cat(2,legtxt3([1:end-2,end])), 'Location',...
-    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
-    'NumColumns', 2);
-
 %% curve fit to effective density data (using bayesian regression)
 
-% initialize figure 
-f5 = figure(5);
-f5.Position = [250, 75, 500, 500];
-set(f5, 'color', 'white')
-
-% define plotting variables
-p5 = cell(3,1);
-legtxt5 = cell(3,1);
-legtxt5{3} = 'Olfert $\&$ Rogak (2019)';
-
-% plot universal correlation
-p5{3,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
-    'LineStyle', '-.', 'LineWidth', 3);
-hold on
-
-% plot ensemble of simulation data
-legtxt5{1} = 'Langevin dynamics simulation';
-p5{1,1} = scatter(1e9 * dm_flt, rho_eff_flt, 10, hex2rgb('#B3C8CF'),...
-    'o', 'LineWidth', 1);
-
-% set appearances
-box on
-xlim(dx2)
-ylim(dy2)
-set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
-    'YScale', 'log', 'TickLabelInterpreter','latex')
-
-xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
+% return to effective density figure 
+figure(f4);
 
 % prepare predictors and response
 log_dm = log10(1e9 * dm_flt);
@@ -384,11 +360,6 @@ PosteriorMdl = estimate(Mdl, X, y);  % uses Gibbs sampling
 
 % get posterior samples
 B_samples = PosteriorMdl.BetaDraws;
-n_samples = 1000;
-
-% posterior mean and covariance
-Mu_post = mean(B_samples, 2);
-Sigma_post = cov(B_samples');
 
 % prediction setup
 x_fit = linspace(min(log_dm), max(log_dm), 500)';
@@ -411,43 +382,84 @@ rho_fit_lower = 10.^y_lower;
 rho_fit_upper = 10.^y_upper;
 
 % plot fit on log-log axes
-p5{2,1} = loglog(dm_fit, rho_fit_mean, 'Color', hex2rgb('#51829B'),...
+p4{6} = loglog(dm_fit, rho_fit_mean, 'Color', hex2rgb('#659287'),...
     'LineWidth', 2);
 fill([dm_fit; flipud(dm_fit)], [rho_fit_lower; flipud(rho_fit_upper)], ...
-    hex2rgb('#51829B'), 'EdgeColor', 'none', 'FaceAlpha', 0.5);
-legtxt5{2} = 'Bayesian Posterior Mean';
+    hex2rgb('#659287'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
+legtxt4{6} = 'Bayesian regression';
 
-lgd5 = legend(cat(1, p5{:})', cat(2,legtxt5(:)), 'Location',...
-    'southwest', 'FontSize', 11, 'interpreter', 'latex');
+legend(cat(1, p4{:})', cat(2,legtxt4(:)), 'Location',...
+    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'NumColumns', 2)
 
-%% curvefit to mass-mobility exponent
+%% obtain slope of effective density as mass-mobility exponent
 
-% Compute polynomial slopes at each x_fit using all posterior samples
-x = x_fit;  % x = log10(d_m), size [n_points x 1]
-n_points = length(x);
+% assign placeholder for derivative (slope)
+n_points = length(x_fit);
 n_samples = size(B_samples, 2);
-
-% Extract polynomial coefficients (skip intercept and hybrid term if present)
-% Assuming B_samples(2:6,:) = [b1; b2; b3; b4] rows
-b1 = B_samples(2, :);  % beta_1
-b2 = B_samples(3, :);  % beta_2
-b3 = B_samples(4, :);  % beta_3
-b4 = B_samples(5, :);  % beta_4
-
-% Evaluate derivative (slope) at each x_fit for each posterior sample
 alpha_samples = zeros(n_points, n_samples);
 
-for i = 1:n_samples
-    alpha_samples(:, i) = ...
-        b1(i) + 2 * b2(i) * x + 3 * b3(i) * x.^2 + 4 * b4(i) * x.^3;
+% extract polynomial coefficients (skipping intercept and hybrid term)
+b1 = B_samples(2, :);
+b2 = B_samples(3, :);
+b3 = B_samples(4, :);
+b4 = B_samples(5, :);
+
+% compute polynomial slopes at each x_fit using all posterior samples
+for i = 1 : n_samples
+    alpha_samples(:, i) = 3 + b1(i) + 2 * b2(i) * x_fit +...
+        3 * b3(i) * x_fit.^2 + 4 * b4(i) * x_fit.^3; % add 3 to convert...
+        % ...from density to mass
 end
 
-% Posterior summary of slope (mass-mobility exponent)
+% posterior summary of slope (mass-mobility exponent)
 alpha_mean = mean(alpha_samples, 2);
 alpha_lower = prctile(alpha_samples, 2.5, 2);
 alpha_upper = prctile(alpha_samples, 97.5, 2);
 
+% initialize figure 
+f5 = figure(5);
+f5.Position = [250, 250, 500, 500];
+set(f5, 'color', 'white')
+
+% define plotting variables
+p5 = cell(3,1);
+legtxt5 = cell(3,1);
+
+% assign legends
+legtxt5{1} = '$\mathrm{LD_2}$ simulation';
+legtxt5{2} = 'Olfert $\&$ Rogak (2019)';
+legtxt5{3} = 'DLCA limit';
+
+% mean slope
+p5{1} = plot(dm_fit, alpha_mean, 'Color', hex2rgb('#659287'),...
+    'LineWidth', 2);
+hold on
+% shaded 95% CI
+fill([dm_fit; flipud(dm_fit)], [alpha_lower; flipud(alpha_upper)],...
+     hex2rgb('#659287'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
+
+% plot exponent of universal correlation
+p5{2} = plot(dm_fit, 2.48 * ones(size(dm_fit)),...
+    'Color', [0.4940 0.1840 0.5560], 'LineStyle', '-.', 'LineWidth', 3);
+
+% plot exponent limit for diffusion-limited cluster aggregation
+p5{3} = plot(dm_fit, 1.78 * ones(size(dm_fit)),...
+    'Color', [0, 0, 0], 'LineStyle', ':', 'LineWidth', 3);
+
+xlim([min(dm_fit), 1000])
+ylim([1.5, 2.8])
+set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+    'YScale', 'log', 'TickLabelInterpreter','latex')
+xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
+ylabel('$D_\mathrm{m} [-]$', 'interpreter', 'latex',...
+    'FontSize', 14)
+legend(cat(1, p5{:})', cat(2,legtxt5(:)), 'Location',...
+    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'NumColumns', 2)
+
 %% save plots
+
 exportgraphics(f1, 'outputs\dpp-da-temporal.jpg',...
     'BackgroundColor','none', 'Resolution', 300)
 exportgraphics(f2, 'outputs\rho-dm-temporal.jpg',...
@@ -456,5 +468,5 @@ exportgraphics(f3, 'outputs\dpp-da-hybrid.jpg',...
     'BackgroundColor','none', 'Resolution', 300)
 exportgraphics(f4, 'outputs\rho-dm-hybrid.jpg',...
     'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f5, 'outputs\rho-dm-fit.jpg',...
+exportgraphics(f5, 'outputs\Dm-dm.jpg',...
     'BackgroundColor','none', 'Resolution', 300)
