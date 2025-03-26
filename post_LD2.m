@@ -18,10 +18,6 @@ for i = 1 : numel(varnames)
     load(strcat(fdir_simul, '\', fname_simul, '.mat'), varnames{i})
 end
 
-% address of experimental data for validation
-fdir_exp = 'F:\Experiment\Effective-Density-Compiled';
-fname_exp = 'Effective-Density-Compiled_17-Mar-2025_05-00-44';
-
 %% plot dpp vs. da as a function of time
 
 n_dat = length(r_n_agg); % number of data times to be plotted
@@ -460,13 +456,26 @@ legend(cat(1, p5{:})', cat(2,legtxt5(:)), 'Location',...
 
 %% save plots
 
-exportgraphics(f1, 'outputs\dpp-da-temporal.jpg',...
+% make a directory to save outputs
+dir_out = strcat('outputs\', 'postLD2-', datestr(datetime('now')),...
+    '_', fname_simul, '\');
+dir_out = regexprep(dir_out, ':', '-');
+dir_out = regexprep(dir_out, ' ', '_');
+if ~isfolder(dir_out)
+    mkdir(dir_out); % if it doesn't exist, create the directory
+end
+
+% save worksapce
+save(strcat(dir_out, 'Post_', fname_simul, '.mat'))
+
+% print figures
+exportgraphics(f1, strcat(dir_out, 'dpp-da-temporal.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f2, 'outputs\rho-dm-temporal.jpg',...
+exportgraphics(f2, strcat(dir_out, 'rho-dm-temporal.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f3, 'outputs\dpp-da-hybrid.jpg',...
+exportgraphics(f3, strcat(dir_out, 'dpp-da-hybrid.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f4, 'outputs\rho-dm-hybrid.jpg',...
+exportgraphics(f4, strcat(dir_out, 'rho-dm-hybrid.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f5, 'outputs\Dm-dm.jpg',...
+exportgraphics(f5, strcat(dir_out, 'Dm-dm.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
