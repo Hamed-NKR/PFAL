@@ -36,10 +36,8 @@ legtxt1{end} = 'Olfert $\&$ Rogak (2019)';
 mc1 = colormap(hot);
 cind1 = round(1 + (length(mc1) - 1) .* (0.05 : 0.7 / (n_dat - 1) : 0.75)');
 mc1 = mc1(cind1,:);
-ms1 = 10 * ones(n_dat, 1);
-ms1(4) = 15;
-ms1(5) = 12;
-mt1 = {'o', '^', 'v', 's', 'd', 'p'};
+ms1 = [10, 20, 15, 20, 10];
+mt1 = {'^', 's', 'p', '*', 'o'};
 mc1(end,:) = [236,230,61] / 255;
 
 % generate and plot universal correlation for dpp vs. da
@@ -111,10 +109,8 @@ legtxt2{end} = 'Olfert $\&$ Rogak (2019)';
 mc2 = colormap(hot);
 cind2 = round(1 + (length(mc2) - 1) .* (0.05 : 0.7 / (n_dat - 1) : 0.75)');
 mc2 = mc2(cind2,:);
-ms2 = 10 * ones(n_dat, 1);
-ms2(4) = 15;
-ms2(5) = 12;
-mt2 = {'o', '^', 'v', 's', 'd', 'p'};
+ms2 = [10, 20, 15, 20, 10];
+mt2 = {'^', 's', 'p', '*', 'o'};
 mc2(end,:) = [236,230,61] / 255;
 
 % generate and plot universal correlation for rho_eff vs. dm
@@ -211,8 +207,8 @@ mc3 = colormap(turbo);
 ii3 = round(1 + (length(mc3) - 1) .* (0.05 : 0.9 / 4 : 0.95)');
 mc3 = mc3(ii3,:);
 mc3 = flip (mc3,1);
-ms3 = [10, 15, 12, 12, 10];
-mt3 = {'^', 's', 'p', 'h', 'o'};
+ms3 = [10, 20, 15, 20, 10];
+mt3 = {'^', 's', 'p', '*', 'o'};
 
 % plot universal correlation
 p3{7,1} = plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
