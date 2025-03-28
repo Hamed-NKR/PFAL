@@ -6,12 +6,11 @@ close all
 %% initialization
 
 % address of simulation data to be imported
-fdir_simul_0 = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-26-Mar-2025_14-11-20_LD2-25NOV24';
+fdir_simul_0 = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-27-Mar-2025_17-58-33_LD2-25NOV24';
 fname_simul_0 = 'Post_LD2-25NOV24';
 
 % variables of interest in the simulation data
-varnames_simul = {'parsdata', 'dm', 'rho_eff', 'r_n_agg',...
-    };
+varnames_simul = {'parsdata', 'dm', 'rho_eff', 'pars_ens'};
 
 ii0 = [1,3,4]; % data group indices in simulation data to be plotted
 
@@ -31,8 +30,9 @@ end
 parsdata0 = parsdata;
 dm0 = dm;
 rho_eff_0 = rho_eff;
+pars_ens_0 = pars_ens;
 
-clear parsdata dm rho_eff % clear original names
+clear parsdata dm rho_eff pars_ens % clear original names
 
 % initialize figure
 f1 = figure(2);
@@ -86,13 +86,13 @@ for i = ii0
     
     if i == 1
         legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
-            {' '}, num2str(r_n_agg(i), '%.0f'));
+            {' '}, num2str(parsdata(i).r_n_agg(1), '%.0f'));
     elseif i == 3
         legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
-            {' '}, num2str(r_n_agg(i), '%.1f'));
+            {' '}, num2str(parsdata(i).r_n_agg(1), '%.1f'));
     else
         legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
-            {' '}, num2str(r_n_agg(i), '%.2f'));
+            {' '}, num2str(parsdata(i).r_n_agg(1), '%.2f'));
     end
 end
 

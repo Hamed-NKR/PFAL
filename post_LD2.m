@@ -72,6 +72,9 @@ for i = 1 : n_dat
         legtxt1(i) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
             {' '}, num2str(r_n_agg(i), '%.2f'));
     end
+
+    parsdata(i).r_n_agg = repelem(r_n_agg(i), length(parsdata(i).da),1);
+
 end
 
 dx1 = [1e9 * 0.9 * min(cat(1, parsdata.da)),...
@@ -216,27 +219,27 @@ p3{7,1} = plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
 hold on
 
 % concatinate the data
-dpp_ens = cat(1,parsdata.dpp);
-dpp_ens = dpp_ens(:,1);
-nagg_ens = length(dpp_ens);
-da_ens = cat(1,parsdata.da);
-nhyb_ens = cat(1,parsdata.n_hyb);
-pp_ens = cat(1,parsdata.pp);
+pars_ens.dpp = cat(1,parsdata.dpp);
+pars_ens.dpp = pars_ens.dpp(:,1);
+nagg_ens = length(pars_ens.dpp);
+pars_ens.da = cat(1,parsdata.da);
+pars_ens.nhyb = cat(1,parsdata.n_hyb);
+pars_ens.pp = cat(1,parsdata.pp);
 
 % find and remove duplicates
 ij = nchoosek(1 : nagg_ens, 2);
 ind_flt = zeros(nagg_ens,1);
 for k = 1 : length(ij)
-    if isequal(sort(unique(pp_ens{ij(k,1)}(:,1))),...
-            sort(unique(pp_ens{ij(k,2)}(:,1))))
+    if isequal(sort(unique(pars_ens.pp{ij(k,1)}(:,1))),...
+            sort(unique(pars_ens.pp{ij(k,2)}(:,1))))
         ind_flt(ij(k,2)) = 1;
     end
 end
 ind_flt = logical(ind_flt);
-dpp_flt = dpp_ens(~ind_flt);
-da_flt = da_ens(~ind_flt);
-nhyb_flt = nhyb_ens(~ind_flt);
-pp_flt = pp_ens(~ind_flt);
+pars_flt.dpp = pars_ens.dpp(~ind_flt);
+pars_flt.da = pars_ens.da(~ind_flt);
+pars_flt.nhyb = pars_ens.nhyb(~ind_flt);
+pars_flt.pp = pars_ens.pp(~ind_flt);
 
 % initial ensemble average pp mean diameter
 pp1_ens = cell2mat(parsdata(1).pp);
@@ -250,10 +253,10 @@ legtxt3(6) = strcat('$\overline{d}_\mathrm{pp,ens}$ =', {' '},...
 iii = cell(5,1); % index sorting placeholder based on number of internal clusters
 
 for i = 1 : 5
-    iii{i} = (nhyb_flt >= kk3(i)) & (nhyb_flt < kk3(i+1));
+    iii{i} = (pars_flt.nhyb >= kk3(i)) & (pars_flt.nhyb < kk3(i+1));
     
     % plot dpp vs. da as a function of internal cluster counts
-    p3{i,1} = scatter(1e9 * da_flt(iii{i}), 1e9 * dpp_flt(iii{i}),...
+    p3{i,1} = scatter(1e9 * pars_flt.da(iii{i}), 1e9 * pars_flt.dpp(iii{i}),...
         ms3(i), mc3(i,:), mt3{i}, 'LineWidth', 1);
     
     % make legends
@@ -301,16 +304,16 @@ p4{7,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
 hold on
 
 % concatinate the data
-dm_ens = cat(1,dm{:});
-rho_eff_ens = cat(1,rho_eff{:});
+pars_ens.dm = cat(1,dm{:});
+pars_ens.rho_eff = cat(1,rho_eff{:});
 
 % remove duplicates
-dm_flt = dm_ens(~ind_flt);
-rho_eff_flt = rho_eff_ens(~ind_flt);
+pars_flt.dm = pars_ens.dm(~ind_flt);
+pars_flt.rho_eff = pars_ens.rho_eff(~ind_flt);
 
 % plot rho_eff vs. dm as a function of internal cluster counts
 for i = 1 : 5
-    p4{i,1} = scatter(1e9 * dm_flt(iii{i}), rho_eff_flt(iii{i}),...
+    p4{i,1} = scatter(1e9 * pars_flt.dm(iii{i}), pars_flt.rho_eff(iii{i}),...
         ms3(i), mc3(i,:), mt3{i}, 'LineWidth', 1);
 
     legtxt4{i} = legtxt3{i};
@@ -331,10 +334,10 @@ ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
 figure(f4);
 
 % prepare predictors and response
-log_dm = log10(1e9 * dm_flt);
-y = log10(rho_eff_flt);
+log_dm = log10(1e9 * pars_flt.dm);
+y = log10(pars_flt.rho_eff);
 
-X = [log_dm, log_dm.^2, log_dm.^3, log_dm.^4, nhyb_flt];  % adding...
+X = [log_dm, log_dm.^2, log_dm.^3, log_dm.^4, pars_flt.nhyb];  % adding...
     % ...polynomial terms for better capturing of curvature
 
 % define prior
@@ -355,7 +358,7 @@ B_samples = PosteriorMdl.BetaDraws;
 
 % prediction setup
 x_fit = linspace(min(log_dm), max(log_dm), 500)';
-mu_group = mean(nhyb_flt);
+mu_group = mean(pars_flt.nhyb);
 X_fit = [ones(size(x_fit)), x_fit, x_fit.^2, x_fit.^3, x_fit.^4,...
     mu_group * ones(size(x_fit))];
 
