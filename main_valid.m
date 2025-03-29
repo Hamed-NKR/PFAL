@@ -6,11 +6,17 @@ close all
 %% initialization
 
 % address of simulation data to be imported
-fdir_simul_0 = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-27-Mar-2025_17-58-33_LD2-25NOV24';
-fname_simul_0 = 'Post_LD2-25NOV24';
+fdir_simul_13_scat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-40-55_LD2-25NOV24';
+fname_simul_13_scat = 'Post_LD2-25NOV24';
+fdir_simul_13_flat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-36-43_LD2_27-Nov-2024_04-21-58_Final';
+fname_simul_13_flat = 'Post_LD2_27-Nov-2024_04-21-58_Final';
+fdir_simul_10_scat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-57-18_LD2-25-Nov-2024_19-37-48_Final';
+fname_simul_10_scat = 'Post_LD2-25-Nov-2024_19-37-48_Final';
+fdir_simul_10_flat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-59-48_LD2-26-Nov-2024_23-56-35_Final';
+fname_simul_10_flat = 'Post_LD2-26-Nov-2024_23-56-35_Final';
 
 % variables of interest in the simulation data
-varnames_simul = {'parsdata', 'dm', 'rho_eff', 'pars_ens'};
+varnames_simul = {'parsdata', 'pars_flt', 'bayesfit'};
 
 ii0 = [1,3,4]; % data group indices in simulation data to be plotted
 
@@ -18,21 +24,46 @@ ii0 = [1,3,4]; % data group indices in simulation data to be plotted
 fdir_exp = 'F:\Experiment\Effective-Density-Compiled';
 fname_exp = 'Effective-Density-Compiled_17-Mar-2025_05-00-44';
 
-%% figure for temporal distribution of simulation effective density vs. experiments
+bayesresol = 500; % number of increment for bayesian fit 
 
-% load the simulation to be validated
+%% temporal distribution of simulation effective density vs. experiments
+
+% load the simulation (sigmapp = 1.3, scattered correlation)
 for i = 1 : numel(varnames_simul)
-    load(strcat(fdir_simul_0, '\', fname_simul_0, '.mat'),...
+    load(strcat(fdir_simul_13_scat, '\', fname_simul_13_scat, '.mat'),...
         varnames_simul{i})
 end
-
 % rename imported variables
-parsdata0 = parsdata;
-dm0 = dm;
-rho_eff_0 = rho_eff;
-pars_ens_0 = pars_ens;
+parsdata_13_scat = parsdata; pars_flt_13_scat = pars_flt;
+bayesfit_13_scat = bayesfit;
+clear parsdata pars_flt bayesfit % clear original names
 
-clear parsdata dm rho_eff pars_ens % clear original names
+% sigmapp = 1.3, flat correlation
+for i = 1 : numel(varnames_simul)
+    load(strcat(fdir_simul_13_flat, '\', fname_simul_13_flat, '.mat'),...
+        varnames_simul{i})
+end
+parsdata_13_flat = parsdata; pars_flt_13_flat = pars_flt;
+bayesfit_13_flat = bayesfit;
+clear parsdata pars_flt bayesfit
+
+% sigmapp = 1.0, scattered correlation
+for i = 1 : numel(varnames_simul)
+    load(strcat(fdir_simul_10_scat, '\', fname_simul_10_scat, '.mat'),...
+        varnames_simul{i})
+end
+parsdata_10_scat = parsdata; pars_flt_10_scat = pars_flt;
+bayesfit_10_scat = bayesfit;
+clear parsdata pars_flt bayesfit
+
+% sigmapp = 1.0, flat correlation
+for i = 1 : numel(varnames_simul)
+    load(strcat(fdir_simul_10_flat, '\', fname_simul_10_flat, '.mat'),...
+        varnames_simul{i})
+end
+parsdata_10_flat = parsdata; pars_flt_10_flat = pars_flt;
+bayesfit_10_flat = bayesfit;
+clear parsdata pars_flt bayesfit
 
 % initialize figure
 f1 = figure(2);
@@ -81,35 +112,35 @@ for i = ii0
     
     ii = find(i==ii0,1);
 
-    plt11{ii} = scatter(1e9 * dm0{i}, rho_eff_0{i},...
+    plt11{ii} = scatter(1e9 * parsdata_13_scat(i).dm, parsdata_13_scat(i).rho_eff,...
         ms1(i), mc1(i,:), mt1{i}, 'LineWidth', 1);
     
     if i == 1
         legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
-            {' '}, num2str(parsdata(i).r_n_agg(1), '%.0f'));
+            {' '}, num2str(parsdata_13_scat(i).r_n_agg(1), '%.0f'));
     elseif i == 3
         legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
-            {' '}, num2str(parsdata(i).r_n_agg(1), '%.1f'));
+            {' '}, num2str(parsdata_13_scat(i).r_n_agg(1), '%.1f'));
     else
         legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
-            {' '}, num2str(parsdata(i).r_n_agg(1), '%.2f'));
+            {' '}, num2str(parsdata_13_scat(i).r_n_agg(1), '%.2f'));
     end
 end
 
-bounds_dm_f1 = [1e9 * 0.9 * min(cat(1, dm0{ii0})),...
-    1e9 * 1.1 * max(cat(1, dm0{ii0}))];
-bounds_rho_f1 = [0.9 * min(cat(1, rho_eff_0{ii0})),...
-    1.1 * max(cat(1, rho_eff_0{ii0}))];
+bounds_dm_f1 = [1e9 * 0.9 * min(cat(1, parsdata_13_scat(ii0).dm)),...
+    1e9 * 1.1 * max(cat(1, parsdata_13_scat(ii0).dm))];
+bounds_rho_f1 = [0.9 * min(cat(1, parsdata_13_scat(ii0).rho_eff)),...
+    1.1 * max(cat(1, parsdata_13_scat(ii0).rho_eff))];
 
 % load experimental data
 load(strcat(fdir_exp, '\', fname_exp, '.mat'), 'dist_grp')
 
 % plot experimental data
 plt11{4} = scatter(dist_grp(1).d_mode, dist_grp(1).rho_eff,...
-    25, hex2rgb('#C96868'), 'v', 'LineWidth', 1);
+    30, hex2rgb('#C96868'), 'v', 'LineWidth', 1.5);
 legtxt11{4} = 'Lo-Aglom';
 plt11{5} = scatter(dist_grp(3).d_mode, dist_grp(3).rho_eff,...
-    35, hex2rgb('#7EACB5'), 'h', 'LineWidth', 1);
+    45, hex2rgb('#7EACB5'), 'h', 'LineWidth', 1.5);
 legtxt11{5} = 'Hi-Aglom';
 
 % set plot appearances
@@ -123,3 +154,105 @@ ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex',...
     'FontSize', 14)
 legend(cat(1, plt11{:}), legtxt11, 'interpreter', 'latex',...
     'FontSize', 11, 'NumColumns', 2, 'Location', 'southoutside')
+
+nexttile(2)
+
+% replot universal correlation for second tile
+plt12{end} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+legtxt12{end} = 'Olfert $\&$ Rogak (2019)';
+
+% initialize strcuture for bayesian fits to effective density validation data
+bayesfit_valid = struct('xfit', cell(4,1), 'yfit', cell(4,1),...
+    'bounds_yfit', cell(4,1), 'afit', cell(4,1), 'bounds_afit', cell(4,1));
+
+% bayesian fit to non-agglomerated simulated aggregates
+[bayesfit_valid(1).yfit, bayesfit_valid(1).xfit, bayesfit_valid(1).bounds_yfit,...
+    bayesfit_valid(1).afit, bayesfit_valid(1).bounds_afit] =...
+    UTILS.BAYESFIT_POLY4(1e9 * parsdata_13_scat(1).dm,...
+    parsdata_13_scat(1).rho_eff, parsdata_13_scat(1).r_n_agg, bayesresol);
+plt12{1} = loglog(bayesfit_valid(1).xfit, bayesfit_valid(1).yfit, 'Color', mc1(1,:),...
+    'LineWidth', 2);
+fill([bayesfit_valid(1).xfit; flipud(bayesfit_valid(1).xfit)],...
+    [bayesfit_valid(1).bounds_yfit(:,1); flipud(bayesfit_valid(1).bounds_yfit(:,2))],...
+    mc1(1,:), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
+legtxt12{1} = legtxt11{1};
+bayesfit_valid(1).name = legtxt12{1};
+
+% bayesian fit to highly-agglomerated simulated aggregates...
+    % ...(0.03 < r_n_agg < 0.1)
+[bayesfit_valid(2).yfit, bayesfit_valid(2).xfit, bayesfit_valid(2).bounds_yfit,...
+    bayesfit_valid(2).afit, bayesfit_valid(2).bounds_afit] =...
+    UTILS.BAYESFIT_POLY4(1e9 * cat(1, parsdata_13_scat(3:4).dm),...
+    cat(1, parsdata_13_scat(3:4).rho_eff), cat(1, parsdata_13_scat(3:4).r_n_agg),...
+    bayesresol);
+plt12{2} = loglog(bayesfit_valid(2).xfit, bayesfit_valid(2).yfit, 'Color', mc1(4,:),...
+    'LineWidth', 2);
+fill([bayesfit_valid(2).xfit; flipud(bayesfit_valid(2).xfit)],...
+    [bayesfit_valid(2).bounds_yfit(:,1); flipud(bayesfit_valid(2).bounds_yfit(:,2))],...
+    mc1(4,:), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
+legtxt12(2) = strcat(num2str(parsdata_13_scat(3).r_n_agg(1), '%.1f'), {' '},...
+    '$\leq n_\mathrm{agg}/n_\mathrm{agg_0} \leq$', {' '},...
+    num2str(parsdata_13_scat(4).r_n_agg(1), '%.2f'));
+bayesfit_valid(2).name = legtxt12{2};
+
+% bayesian fit to 'Lo-Aglom' experimental condition
+[bayesfit_valid(3).yfit, bayesfit_valid(3).xfit, bayesfit_valid(3).bounds_yfit,...
+    bayesfit_valid(3).afit, bayesfit_valid(3).bounds_afit] =...
+    UTILS.BAYESFIT_POLY4(dist_grp(1).d_mode', dist_grp(1).rho_eff',...
+    ones(size(dist_grp(1).rho_eff')), bayesresol);
+plt12{3} = loglog(bayesfit_valid(3).xfit, bayesfit_valid(3).yfit, 'Color',...
+    hex2rgb('#C96868'), 'LineWidth', 3);
+fill([bayesfit_valid(3).xfit; flipud(bayesfit_valid(3).xfit)],...
+    [bayesfit_valid(3).bounds_yfit(:,1); flipud(bayesfit_valid(3).bounds_yfit(:,2))],...
+    hex2rgb('#C96868'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
+legtxt12{3} = 'Lo-Aglom';
+bayesfit_valid(3).name = legtxt12{3};
+
+% bayesian fit to 'Hi-Aglom' experimental condition
+[bayesfit_valid(4).yfit, bayesfit_valid(4).xfit, bayesfit_valid(4).bounds_yfit,...
+    bayesfit_valid(4).afit, bayesfit_valid(4).bounds_afit] =...
+    UTILS.BAYESFIT_POLY4(dist_grp(3).d_mode', dist_grp(3).rho_eff',...
+    ones(size(dist_grp(3).rho_eff')), bayesresol);
+plt12{4} = loglog(bayesfit_valid(4).xfit, bayesfit_valid(4).yfit, 'Color',...
+    hex2rgb('#7EACB5'), 'LineWidth', 3);
+fill([bayesfit_valid(4).xfit; flipud(bayesfit_valid(4).xfit)],...
+    [bayesfit_valid(4).bounds_yfit(:,1); flipud(bayesfit_valid(4).bounds_yfit(:,2))],...
+    hex2rgb('#7EACB5'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
+legtxt12{4} = 'Hi-Aglom';
+bayesfit_valid(4).name = legtxt12{4};
+
+% set plot appearances
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+xlim(bounds_dm_f1)
+ylim(bounds_rho_f1)
+xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
+ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex',...
+    'FontSize', 14)
+
+legend(cat(1, plt12{:}), legtxt12, 'interpreter', 'latex',...
+    'FontSize', 11, 'NumColumns', 2, 'Location', 'southoutside')
+
+%% parametric studies on simulations
+
+% effective density comparsion
+figure
+plot(bayesfit_13_scat.xfit, bayesfit_13_scat.yfit,...
+    bayesfit_13_flat.xfit, bayesfit_13_flat.yfit,...
+    bayesfit_10_scat.xfit, bayesfit_10_scat.yfit,...
+    bayesfit_10_flat.xfit, bayesfit_10_flat.yfit)
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+
+% mass-mobility exponent comparison
+figure
+plot(bayesfit_13_scat.xfit, bayesfit_13_scat.afit,...
+    bayesfit_13_flat.xfit, bayesfit_13_flat.afit,...
+    bayesfit_10_scat.xfit, bayesfit_10_scat.afit,...
+    bayesfit_10_flat.xfit, bayesfit_10_flat.afit)
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+

@@ -1,6 +1,6 @@
 function [yfit, xfit, bounds_yfit, afit, bounds_afit] =...
-    BAYESFIT_POLY4(x, y, group, resol)
-% BAYESFIT perfroms a fourth-order polynomial regression in log-log...
+    BAYESFIT_POLY2(x, y, group, resol)
+% BAYESFIT perfroms a second-order polynomial regression in log-log...
 %   ...space based on bayesian inference. This is primarily used for...
 %   ...capturing curvature in the trends of effective density vs. ...
 %   ...mobility diameter. Means and 95% confidence intervals are output...
@@ -32,8 +32,8 @@ function [yfit, xfit, bounds_yfit, afit, bounds_afit] =...
 log_x = log10(x);
 log_y = log10(y);
 
-X = [log_x, log_x.^2, log_x.^3, log_x.^4, group];  % a fourth-order...
-    % ...polynomial ensures better capturing of curvature
+X = [log_x, log_x.^2, group];  % a second-order...
+    % ...polynomial ensures closely following data
 
 % define prior
 p = size(X,2); % number of predictors (excluding intercept)
@@ -54,7 +54,7 @@ B_samples = PosteriorMdl.BetaDraws;
 % prediction setup
 log_xfit = linspace(min(log_x), max(log_x), resol)';
 mu_group = mean(group);
-X_fit = [ones(size(log_xfit)), log_xfit, log_xfit.^2, log_xfit.^3, log_xfit.^4,...
+X_fit = [ones(size(log_xfit)), log_xfit, log_xfit.^2,...
     mu_group * ones(size(log_xfit))];
 
 % predict y from all posterior samples
@@ -80,14 +80,10 @@ alpha_samples = zeros(n_points, n_samples);
 % extract polynomial coefficients (skipping intercept and group term)
 b1 = B_samples(2, :);
 b2 = B_samples(3, :);
-b3 = B_samples(4, :);
-b4 = B_samples(5, :);
 
 % compute polynomial slopes at each x_fit using all posterior samples
 for i = 1 : n_samples
-    alpha_samples(:, i) = 3 + b1(i) + 2 * b2(i) * log_xfit +...
-        3 * b3(i) * log_xfit.^2 + 4 * b4(i) * log_xfit.^3; % adding 3 to...
-        % ...convert to Dm
+    alpha_samples(:, i) = 3 + b1(i) + 2 * b2(i) * log_xfit; % adding 3 to convert to Dm
 end
 
 % posterior summary of slope
