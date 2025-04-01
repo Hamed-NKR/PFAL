@@ -6,13 +6,13 @@ close all
 %% initialization
 
 % address of simulation data to be imported
-fdir_simul_13_scat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-40-55_LD2-25NOV24';
+fdir_simul_13_scat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-40-55_LD2-25NOV24';
 fname_simul_13_scat = 'Post_LD2-25NOV24';
-fdir_simul_13_flat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-36-43_LD2_27-Nov-2024_04-21-58_Final';
+fdir_simul_13_flat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-36-43_LD2_27-Nov-2024_04-21-58_Final';
 fname_simul_13_flat = 'Post_LD2_27-Nov-2024_04-21-58_Final';
-fdir_simul_10_scat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-57-18_LD2-25-Nov-2024_19-37-48_Final';
+fdir_simul_10_scat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-57-18_LD2-25-Nov-2024_19-37-48_Final';
 fname_simul_10_scat = 'Post_LD2-25-Nov-2024_19-37-48_Final';
-fdir_simul_10_flat = 'C:\Users\hmdnkr\Documents\GitHub\MCEM\outputs\postLD2-28-Mar-2025_18-59-48_LD2-26-Nov-2024_23-56-35_Final';
+fdir_simul_10_flat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-59-48_LD2-26-Nov-2024_23-56-35_Final';
 fname_simul_10_flat = 'Post_LD2-26-Nov-2024_23-56-35_Final';
 
 % variables of interest in the simulation data
@@ -67,7 +67,7 @@ clear parsdata pars_flt bayesfit
 
 % initialize figure
 f1 = figure(1);
-f1.Position = [50, 50, 900, 500];
+f1.Position = [50, 50, 1100, 650];
 set(f1, 'color', 'white')
 
 % initialize layout
@@ -116,13 +116,13 @@ for i = ii0
         ms1(i), mc1(i,:), mt1{i}, 'LineWidth', 1);
     
     if i == 1
-        legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+        legtxt11(ii) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
             {' '}, num2str(parsdata_13_scat(i).r_n_agg(1), '%.0f'));
     elseif i == 3
-        legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+        legtxt11(ii) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
             {' '}, num2str(parsdata_13_scat(i).r_n_agg(1), '%.1f'));
     else
-        legtxt11(ii) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+        legtxt11(ii) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
             {' '}, num2str(parsdata_13_scat(i).r_n_agg(1), '%.2f'));
     end
 end
@@ -145,15 +145,15 @@ legtxt11{5} = 'Hi-Aglom';
 
 % set plot appearances
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(bounds_dm_f1)
 ylim(bounds_rho_f1)
-xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
-    'FontSize', 14)
+    'FontSize', 18)
 legend(cat(1, plt11{:}), legtxt11, 'interpreter', 'latex',...
-    'FontSize', 11, 'NumColumns', 2, 'Location', 'southoutside')
+    'FontSize', 14, 'NumColumns', 2, 'Location', 'southoutside')
 
 nexttile(2)
 
@@ -193,7 +193,7 @@ fill([bayesfit_valid(2).xfit; flipud(bayesfit_valid(2).xfit)],...
     [bayesfit_valid(2).bounds_yfit(:,1); flipud(bayesfit_valid(2).bounds_yfit(:,2))],...
     mc1(4,:), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
 legtxt12(2) = strcat(num2str(parsdata_13_scat(3).r_n_agg(1), '%.1f'), {' '},...
-    '$\leq n_\mathrm{agg}/n_\mathrm{agg_0} \leq$', {' '},...
+    '$\leq n_\mathrm{agg}/(n_\mathrm{agg})_2 \leq$', {' '},...
     num2str(parsdata_13_scat(4).r_n_agg(1), '%.2f'));
 bayesfit_valid(2).name = legtxt12{2};
 
@@ -225,22 +225,22 @@ bayesfit_valid(4).name = legtxt12{4};
 
 % set plot appearances
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(bounds_dm_f1)
 ylim(bounds_rho_f1)
-xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
-    'FontSize', 14)
+    'FontSize', 18)
 
 legend(cat(1, plt12{:}), legtxt12, 'interpreter', 'latex',...
-    'FontSize', 11, 'NumColumns', 2, 'Location', 'southoutside')
+    'FontSize', 14, 'NumColumns', 2, 'Location', 'southoutside')
 
 %% parametric studies on simulations (temporal effective densities)
 
 % initialize figure
 f2 = figure(2);
-f2.Position = [100, 100, 900, 900];
+f2.Position = [100, 100, 850, 900];
 set(f2, 'color', 'white')
 
 % initialize layout
@@ -300,13 +300,13 @@ for i = 1 : 4
                     parsdata_13_scat(j).rho_eff, ms2(j), mc1(j,:),...
                     mt1{j}, 'LineWidth', 1);
                 if j == 1
-                    legtxt2(j) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+                    legtxt2(j) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
                         {' '}, num2str(parsdata_13_scat(j).r_n_agg(1), '%.0f'));
                 elseif ismember(j, [2,3])
-                    legtxt2(j) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+                    legtxt2(j) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
                         {' '}, num2str(parsdata_13_scat(j).r_n_agg(1), '%.1f'));
                 elseif ismember(j, [4,5])
-                    legtxt2(j) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+                    legtxt2(j) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
                         {' '}, num2str(parsdata_13_scat(j).r_n_agg(1), '%.2f'));
                 end
 
@@ -343,12 +343,12 @@ for i = 1 : 4
 
 end
 
+lgd2 = legend(cat(1, plt2{:}), legtxt2, 'interpreter', 'latex',...
+    'FontSize', 14, 'NumColumns', 3);
+lgd2.Layout.Tile = 'north';
 xlabel(tl2, '$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel(tl2, '$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter',...
     'latex', 'FontSize', 18)
-lgd2 = legend(cat(1, plt2{:}), legtxt2, 'interpreter', 'latex',...
-    'FontSize', 14, 'NumColumns', 3);
-lgd2.Layout.Tile = 'south';
 
 %% curvefits to parametric studies
 
@@ -418,7 +418,7 @@ legtxt3{4} = '$(\gamma_\mathrm{pp})_1$ = 1.0, univariate';
 
 % set plot appearances
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 bounds_dm_f3 = [min([min(bayesfit_13_scat.xfit),...
     min(bayesfit_13_flat.xfit), min(bayesfit_10_scat.xfit),...
@@ -432,9 +432,9 @@ bounds_rho_f3 = [min([min(bayesfit_13_scat.yfit),...
     max(bayesfit_13_flat.yfit), max(bayesfit_10_scat.yfit),...
     max(bayesfit_10_flat.yfit)])];
 ylim(bounds_rho_f3)
-xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
-    'FontSize', 14)
+    'FontSize', 18)
 
 % mass-mobility exponent comparison
 nexttile(2)
@@ -491,7 +491,7 @@ fill([bayesfit_10_flat.xfit; flipud(bayesfit_10_flat.xfit)],...
 
 % set plot appearances
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(bounds_dm_f3)
 bounds_Dm_f3 = [min([min(bayesfit_13_scat.afit),...
@@ -500,18 +500,18 @@ bounds_Dm_f3 = [min([min(bayesfit_13_scat.afit),...
     max(bayesfit_13_flat.afit), max(bayesfit_10_scat.afit),...
     max(bayesfit_10_flat.afit)])];
 ylim(bounds_Dm_f3)
-xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$D_\mathrm{m}$ [-]', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$D_\mathrm{m}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
 
 lgd3 = legend(cat(1, plt3{:,2}), legtxt3, 'interpreter', 'latex',...
-    'FontSize', 11, 'NumColumns', 3);
+    'FontSize', 14, 'NumColumns', 3);
 lgd3.Layout.Tile = 'south';
 
 %% temporal primary particle size vs aggregate size
 
 % initialize figure
 f4 = figure(4);
-f4.Position = [200, 200, 900, 900];
+f4.Position = [200, 200, 850, 900];
 set(f4, 'color', 'white')
 
 % initialize layout
@@ -598,7 +598,7 @@ for i = 1 : 4
 
     % set plot appearances
     box on
-    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
         'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
     xlim(bounds_da_f4)
     ylim(bounds_dpp_f4)
@@ -606,9 +606,34 @@ for i = 1 : 4
 
 end
 
+lgd4 = legend(cat(1, plt4{:}), legtxt2, 'interpreter', 'latex',...
+    'FontSize', 14, 'NumColumns', 3);
+lgd4.Layout.Tile = 'north';
 xlabel(tl4, '$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel(tl4, '$d_\mathrm{pp}$ [nm]', 'interpreter',...
     'latex', 'FontSize', 18)
-lgd4 = legend(cat(1, plt4{:}), legtxt2, 'interpreter', 'latex',...
-    'FontSize', 14, 'NumColumns', 3);
-lgd4.Layout.Tile = 'south';
+
+%% save plots
+
+% make a directory to save outputs
+dir0_out = datestr(datetime('now'));
+dir0_out = regexprep(dir0_out, ':', '-');
+dir0_out = regexprep(dir0_out, ' ', '_');
+dir_out = strcat('outputs\', 'Valid_', dir0_out, '\');
+if ~isfolder(dir_out)
+    mkdir(dir_out); % if it doesn't exist, create the directory
+end
+
+% save worksapce
+save(strcat(dir_out, 'Valid_', dir0_out, '.mat'))
+
+% print figures
+exportgraphics(f1, strcat(dir_out, 'simul-vs-exp.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f2, strcat(dir_out, 'simul-param-rho-vs-dm.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f3, strcat(dir_out, 'bayesfit-param-rho-and-Dm.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f4, strcat(dir_out, 'simul-param-dpp-vs-da.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+

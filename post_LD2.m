@@ -7,14 +7,14 @@ warning('off')
 %% Initialize and load second-stage LD aggregates %%
 
 % address of second-stage langevin dynamics data to be imported
-% fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\SCAT';
-% fname_simul = 'LD2-25NOV24';
+fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\SCAT';
+fname_simul = 'LD2-25NOV24';
 % fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\FLAT';
 % fname_simul = 'LD2_27-Nov-2024_04-21-58_Final';
 % fdir_simul = 'F:\DLCA2\mainscatter_sigmapp10\SCAT';
 % fname_simul = 'LD2-25-Nov-2024_19-37-48_Final';
-fdir_simul = 'F:\DLCA2\mainscatter_sigmapp10\FLAT';
-fname_simul = 'LD2-26-Nov-2024_23-56-35_Final';
+% fdir_simul = 'F:\DLCA2\mainscatter_sigmapp10\FLAT';
+% fname_simul = 'LD2-26-Nov-2024_23-56-35_Final';
 
 % variables of interest in the data
 varnames = {'parsdata', 'ensdata', 'r_n_agg', 'fl'};
@@ -32,7 +32,7 @@ n_dat = length(r_n_agg); % number of data times to be plotted
 
 % initialize temporal dpp vs da figure
 f1 = figure(1);
-f1.Position = [50, 50, 500, 600];
+f1.Position = [50, 50, 550, 700];
 set(f1, 'color', 'white')
 
 % placholders for plots & legends
@@ -71,13 +71,13 @@ for i = 1 : n_dat
     
     % make legends and adjust their format
     if i == 1
-        legtxt1(i) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+        legtxt1(i) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
             {' '}, num2str(r_n_agg(i), '%.0f'));
     elseif ismember(i, [2,3])
-        legtxt1(i) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+        legtxt1(i) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
             {' '}, num2str(r_n_agg(i), '%.1f'));
     else
-        legtxt1(i) = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+        legtxt1(i) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
             {' '}, num2str(r_n_agg(i), '%.2f'));
     end
 
@@ -91,24 +91,24 @@ dy1 = [1e9 * 0.9 * min(cat(1, parsdata.dpp)),...
     1e9 * 1.1 * max(cat(1, parsdata.dpp))];
 
 % plot appearance configs
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(dx1)
 ylim(dy1)
-xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$d_\mathrm{pp}$ [nm]', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$d_\mathrm{pp}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 box on
 
 % generate legends
 legend(cat(1, plt1{:}), legtxt1, 'interpreter', 'latex',...
-    'FontSize', 11, 'orientation', 'horizontal', 'NumColumns', 2,...
+    'FontSize', 14, 'orientation', 'horizontal', 'NumColumns', 2,...
     'Location', 'southoutside')
 
 %% plot effective density as a function of time
 
 % initialize temporal rho vs dm figure
 f2 = figure(2);
-f2.Position = [100, 100, 500, 600];
+f2.Position = [100, 100, 550, 700];
 set(f2, 'color', 'white')
 
 % placholders for plots & legends
@@ -169,17 +169,17 @@ dy2 = [0.9 * min(cat(1, parsdata.rho_eff)),...
     1.1 * max(cat(1, parsdata.rho_eff))];
 
 % plot appearance configs
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(dx2)
 ylim(dy2)
-xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$\rho_\mathrm{eff}$ [kg/$\mathrm{m}^3$]', 'interpreter', 'latex', 'FontSize', 18)
 box on
 
 % generate legends
 legend(cat(1, plt2{:}), legtxt1, 'interpreter', 'latex',...
-    'FontSize', 11, 'orientation', 'horizontal', 'NumColumns', 2,...
+    'FontSize', 14, 'orientation', 'horizontal', 'NumColumns', 2,...
     'Location', 'southoutside')
 
 if ~isfolder('outputs\')
@@ -190,7 +190,7 @@ end
 
 % initialize figure 
 f3 = figure(3);
-f3.Position = [150, 150, 500, 600];
+f3.Position = [150, 150, 550, 700];
 set(f3, 'color', 'white')
 
 % define plotting variables
@@ -239,7 +239,7 @@ dpp1_ens = geomean(pp1_ens(:,2));
 sigmapp1_ens = UTILS.GEOSTD(pp1_ens(:,2));
 p3{6,1} = plot(da_uc, 1e9 * repelem(dpp1_ens, length(da_uc)),...
     'Color', [0, 0, 0], 'LineStyle', ':', 'LineWidth', 2);
-legtxt3(6) = strcat('$\overline{d}_\mathrm{pp,ens}$ =', {' '},...
+legtxt3(6) = strcat('$\langle{d}_\mathrm{pp}\rangle$ =', {' '},...
     num2str(1e9 * dpp1_ens,'%.1f'), ' nm');
 
 iii = cell(5,1); % index sorting placeholder based on number of internal clusters
@@ -254,13 +254,13 @@ for i = 1 : 5
     % make legends
     switch i
         case {1,2}
-            legtxt3(i) = strcat('$n_{hyb}$ =',...
+            legtxt3(i) = strcat('$n_\mathrm{hyb}$ =',...
                 {' '}, num2str(kk3(i), '%d'));
         case {3,4}
             legtxt3(i) = strcat(num2str(kk3(i), '%d'), {' '},...
-                '$\leq n_{hyb} \leq$', {' '}, num2str(kk3(i+1)-1, '%d'));
+                '$\leq n_\mathrm{hyb} \leq$', {' '}, num2str(kk3(i+1)-1, '%d'));
         otherwise
-            legtxt3(i) = strcat('$n_{hyb} >$', {' '},...
+            legtxt3(i) = strcat('$n_\mathrm{hyb} >$', {' '},...
                 num2str(kk3(i)-1, '%d'));
     end
 end
@@ -268,21 +268,21 @@ end
 box on
 xlim(dx1)
 ylim(dy1)
-set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+set(gca, 'FontSize', 12, 'TickLength', [0.02 0.02], 'XScale', 'log',...
     'YScale', 'log', 'TickLabelInterpreter','latex')
 
-xlabel('$\overline{d}_\mathrm{a}$ [nm]', 'FontSize', 14, 'interpreter','latex')
-ylabel('$\overline{d}_\mathrm{pp}$ [nm]', 'FontSize', 14, 'interpreter', 'latex')
+xlabel('$d_\mathrm{a}$ [nm]', 'FontSize', 18, 'interpreter','latex')
+ylabel('$d_\mathrm{pp}$ [nm]', 'FontSize', 18, 'interpreter', 'latex')
 
 legend(cat(1, p3{:})', cat(2,legtxt3(:)), 'Location',...
-    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'southoutside', 'FontSize', 14, 'interpreter', 'latex',...
     'NumColumns', 2)
 
 %% plot effective density as a function of hybridity
 
 % initialize figure 
 f4 = figure(4);
-f4.Position = [200, 200, 500, 600];
+f4.Position = [200, 200, 550, 700];
 set(f4, 'color', 'white')
 
 % define plotting variables
@@ -315,13 +315,13 @@ end
 box on
 xlim(dx2)
 ylim(dy2)
-set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+set(gca, 'FontSize', 12, 'TickLength', [0.02 0.02], 'XScale', 'log',...
     'YScale', 'log', 'TickLabelInterpreter','latex')
 
-xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$\rho_\mathrm{eff}$ [kg/$\mathrm{m}^3$]', 'interpreter', 'latex', 'FontSize', 18)
 legend(cat(1, p4{:})', cat(2,legtxt4(:)), 'Location',...
-    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'southoutside', 'FontSize', 14, 'interpreter', 'latex',...
     'NumColumns', 2)
 
 
@@ -329,7 +329,7 @@ legend(cat(1, p4{:})', cat(2,legtxt4(:)), 'Location',...
 
 % initialize figure 
 f5 = figure(5);
-f5.Position = [250, 250, 500, 500];
+f5.Position = [250, 250, 550, 600];
 set(f5, 'color', 'white')
 
 % calculate the bayesian fit based on the input order of polynomial
@@ -381,19 +381,19 @@ fill([bayesfit.xfit; flipud(bayesfit.xfit)], [bayesfit.bounds_yfit(:,1);...
 box on
 xlim(dx2)
 ylim(dy2)
-set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+set(gca, 'FontSize', 12, 'TickLength', [0.02 0.02], 'XScale', 'log',...
     'YScale', 'log', 'TickLabelInterpreter','latex')
-xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$\rho_\mathrm{eff} [kg/m^3]$', 'interpreter', 'latex', 'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$\rho_\mathrm{eff}$  [kg/$\mathrm{m}^3$]', 'interpreter', 'latex', 'FontSize', 18)
 legend(cat(1, p5{:})', cat(2,legtxt5(:)), 'Location',...
-    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'southoutside', 'FontSize', 14, 'interpreter', 'latex',...
     'NumColumns', 2)
 
 %% plot mass-mobility exponent (slope of effective density in log-log scale)
 
 % initialize figure 
 f6 = figure(6);
-f6.Position = [300, 300, 500, 500];
+f6.Position = [300, 300, 550, 600];
 set(f6, 'color', 'white')
 
 p6 = cell(3,1); % define plotting variables
@@ -423,13 +423,13 @@ p6{3} = plot(bayesfit.xfit, 1.78 * ones(size(bayesfit.xfit)),...
 
 xlim([min(bayesfit.xfit), 1000])
 ylim([1.5, 2.8])
-set(gca, 'FontSize', 11, 'TickLength', [0.02 0.02], 'XScale', 'log',...
+set(gca, 'FontSize', 12, 'TickLength', [0.02 0.02], 'XScale', 'log',...
     'YScale', 'log', 'TickLabelInterpreter','latex')
-xlabel('$d_\mathrm{m} [nm]$', 'interpreter', 'latex', 'FontSize', 14)
-ylabel('$D_\mathrm{m} [-]$', 'interpreter', 'latex',...
-    'FontSize', 14)
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$D_\mathrm{m}$ [-]', 'interpreter', 'latex',...
+    'FontSize', 18)
 legend(cat(1, p6{:})', cat(2,legtxt6(:)), 'Location',...
-    'southoutside', 'FontSize', 11, 'interpreter', 'latex',...
+    'southoutside', 'FontSize', 14, 'interpreter', 'latex',...
     'NumColumns', 2)
 
 %% save plots
