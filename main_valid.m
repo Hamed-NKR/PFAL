@@ -347,7 +347,7 @@ xlabel(tl2, '$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel(tl2, '$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter',...
     'latex', 'FontSize', 18)
 lgd2 = legend(cat(1, plt2{:}), legtxt2, 'interpreter', 'latex',...
-    'FontSize', 11, 'NumColumns', 3);
+    'FontSize', 14, 'NumColumns', 3);
 lgd2.Layout.Tile = 'south';
 
 %% curvefits to parametric studies
@@ -506,3 +506,109 @@ ylabel('$D_\mathrm{m}$ [-]', 'interpreter', 'latex', 'FontSize', 14)
 lgd3 = legend(cat(1, plt3{:,2}), legtxt3, 'interpreter', 'latex',...
     'FontSize', 11, 'NumColumns', 3);
 lgd3.Layout.Tile = 'south';
+
+%% temporal primary particle size vs aggregate size
+
+% initialize figure
+f4 = figure(4);
+f4.Position = [200, 200, 900, 900];
+set(f4, 'color', 'white')
+
+% initialize layout
+tl4 = tiledlayout(2,2);
+tl4.TileSpacing = 'compact';
+tl4.Padding = 'compact';
+
+plt4 = cell(6,1); % initialize placholders for plots
+
+% calculate bounds for subplots
+bounds_da_f4 = [1e9 * 0.9 * min([min(cat(1, parsdata_13_scat.da)),...
+    min(cat(1, parsdata_13_flat.da)), min(cat(1, parsdata_10_scat.da)),...
+    min(cat(1, parsdata_10_flat.da))]),...
+    1e9 * 1.1 * max([max(cat(1, parsdata_13_scat.da)),...
+    max(cat(1, parsdata_13_flat.da)), max(cat(1, parsdata_10_scat.da)),...
+    max(cat(1, parsdata_10_flat.da))])];
+bounds_dpp_f4 = [1e9 * 0.9 * min([min(cat(1, parsdata_13_scat.dpp)),...
+    min(cat(1, parsdata_13_flat.dpp)), min(cat(1, parsdata_10_scat.dpp)),...
+    min(cat(1, parsdata_10_flat.dpp))]),...
+    1e9 * 1.1 * max([max(cat(1, parsdata_13_scat.dpp)),...
+    max(cat(1, parsdata_13_flat.dpp)), max(cat(1, parsdata_10_scat.dpp)),...
+    max(cat(1, parsdata_10_flat.dpp))])];
+
+% assign variables for universal correlation
+D_TEM = 0.35; % exponent
+dpp_100 = 17.8; % pefactor
+da_lim_uc = [1e0 2e4];  % limits on the projected area diameter
+n_da_uc = 1e4; % number of data
+uc1 = @(y) dpp_100 * (y / 100) .^ D_TEM; % on-demand function for the...
+    % ...forward correlation in the geometrical domain (dpp as a...
+    % ...function of da in [nm])
+r_uc1 = (da_lim_uc(2) / da_lim_uc(1)) ^ (1 / (n_da_uc - 1));
+da_uc = da_lim_uc(1) * ones(n_da_uc,1) .* r_uc1 .^ (((1 : n_da_uc) - 1)');
+dpp_uc = uc1(da_uc);
+
+for i = 1 : 4
+
+    nexttile(i)
+
+    % plot universal correlation of of Olfert & Rogak (2019)
+    if i == 1
+        plt4{6} = plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
+            'LineStyle', '-.', 'LineWidth', 3);
+        legtxt2{6} = 'Olfert $\&$ Rogak (2019)';
+    else
+        plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
+            'LineStyle', '-.', 'LineWidth', 3);
+    end
+    hold on
+
+    for j = 1 : 5
+
+        switch i
+
+            % aggregates with initial polydispersity, and with scatter...
+                % ...around universal correlation
+            case 1
+                plt4{j} = scatter(1e9 * parsdata_13_scat(j).da,...
+                    1e9 * parsdata_13_scat(j).dpp, ms2(j), mc1(j,:),...
+                    mt1{j}, 'LineWidth', 1);
+
+            % aggregates with initial polydispersity, but without scatter...
+                % ...around universal correlation
+            case 2
+                    scatter(1e9 * parsdata_13_flat(j).da,...
+                        1e9 * parsdata_13_flat(j).dpp, ms2(j), mc1(j,:),...
+                        mt1{j}, 'LineWidth', 1);
+
+            % aggregates without initial polydispersity, but with scatter...
+                % ...around universal correlation
+            case 3
+                    scatter(1e9 * parsdata_10_scat(j).da,...
+                        1e9 * parsdata_10_scat(j).dpp, ms2(j), mc1(j,:),...
+                        mt1{j}, 'LineWidth', 1);
+
+            % aggregates without initial polydispersity, and without scatter...
+                % ...around universal correlation
+            case 4
+                    scatter(1e9 * parsdata_10_flat(j).da,...
+                        1e9 * parsdata_10_flat(j).dpp, ms2(j), mc1(j,:),...
+                        mt1{j}, 'LineWidth', 1);
+        end
+    end
+
+    % set plot appearances
+    box on
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 11,...
+        'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+    xlim(bounds_da_f4)
+    ylim(bounds_dpp_f4)
+    title(titxt2{i}, 'interpreter', 'latex', 'FontSize', 14)
+
+end
+
+xlabel(tl4, '$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel(tl4, '$d_\mathrm{pp}$ [nm]', 'interpreter',...
+    'latex', 'FontSize', 18)
+lgd4 = legend(cat(1, plt4{:}), legtxt2, 'interpreter', 'latex',...
+    'FontSize', 14, 'NumColumns', 3);
+lgd4.Layout.Tile = 'south';
