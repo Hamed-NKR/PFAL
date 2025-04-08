@@ -3,7 +3,7 @@ clear
 clf('reset')
 close all
 
-%% initialization
+%% initialization %%
 
 % address of simulation data to be imported
 fdir_simul_13_scat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-40-55_LD2-25NOV24';
@@ -26,7 +26,7 @@ fname_exp = 'Effective-Density-Compiled_17-Mar-2025_05-00-44';
 
 bayesresol = 500; % number of increment for bayesian fit 
 
-%% temporal distribution of simulation effective density vs. experiments
+%% temporal distribution of simulation effective density vs. experiments %%
 
 % load the simulation (gammapp = 1.3, scattered correlation)
 for i = 1 : numel(varnames_simul)
@@ -236,7 +236,7 @@ ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
 legend(cat(1, plt12{:}), legtxt12, 'interpreter', 'latex',...
     'FontSize', 14, 'NumColumns', 2, 'Location', 'southoutside')
 
-%% parametric studies on simulations (temporal effective densities)
+%% parametric studies on simulations (temporal effective densities) %%
 
 % initialize figure
 f2 = figure(2);
@@ -350,7 +350,7 @@ xlabel(tl2, '$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel(tl2, '$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter',...
     'latex', 'FontSize', 18)
 
-%% curvefits to parametric studies
+%% curvefits to parametric studies %%
 
 % initialize figure
 f3 = figure(3);
@@ -374,7 +374,7 @@ plt3{5,1} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
 hold on
 legtxt3{5} = 'Olfert $\&$ Rogak (2019)';
 
-% plot universal correlation of of Olfert & Rogak (2019)
+%%% plot universal correlation of of Olfert & Rogak (2019)
 
 % aggregates with initial polydispersity and with scatter around...
     % ...universal correlation
@@ -507,7 +507,7 @@ lgd3 = legend(cat(1, plt3{:,2}), legtxt3, 'interpreter', 'latex',...
     'FontSize', 14, 'NumColumns', 3);
 lgd3.Layout.Tile = 'south';
 
-%% temporal primary particle size vs aggregate size
+%% temporal primary particle size vs aggregate size %%
 
 % initialize figure
 f4 = figure(4);
@@ -613,7 +613,7 @@ xlabel(tl4, '$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel(tl4, '$d_\mathrm{pp}$ [nm]', 'interpreter',...
     'latex', 'FontSize', 18)
 
-%% save plots
+%% save plots and workspace %%
 
 % make a directory to save outputs
 dir0_out = datestr(datetime('now'));
