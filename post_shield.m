@@ -112,7 +112,7 @@ y_ttl1 = linspace(y0_ttl1(1), y0_ttl1(2), n_agg_f1 + 1);
 % % generate colorbar showing shielding values
 % cb1 = colorbar(tl1{1,1}, 'eastoutside');
 % cb1.Layout.Tile = 'south';
-% cb1.Label.String = 'Shielding ratio [-]';
+% cb1.Label.String = 'Screening ratio [-]';
 % cb1.FontSize = 12;
 % cb1.Label.FontSize = 18;
 % cb1.TickLabelInterpreter = 'latex';
@@ -136,40 +136,47 @@ set(f2, 'color', 'white');
 n_shot = length(parsdata); % number of snapshots to be plotted
 
 spp = cell(n_shot, 1); % allocate variable for ensemble shielding factors
+mu_spp = zeros(n_shot, 1); % allocate means of shielding factor
 
 % allocate probability density function (PDF) and evaluation points for...
     % ...ensemble shielding
 f_spp = cell(n_shot, 1);
 xi_spp = cell(n_shot, 1);
 
-scale_spp = -0.18; % assign a scale for PFD to adjust curve extents
+scale_spp = -0.25; % assign a scale for PFD to adjust curve extents
 
 % allocate labels for x axis
-xlbl2{i} = cell(n_shot, 1);
+xlbl2 = cell(n_shot, 1);
 
 npp_tot = zeros(n_shot, 1); % allocate variable for the ensemble number...
     % ...of primary particles
 
-hold on
-
 for i = 1 : n_shot
+
+    % concatinate shielding factors across aggregates
+    spp{i} = cat(1, parsdata(i).spp{:});    
+    
+    % compute mean of shielding factor for each snapshot
+    mu_spp(i) = mean(spp{i});
 
     % make a label for the distribution based on post-flame lifetime
     if i == 1
-        xlbl2{i} = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
-            {' '}, num2str(parsdata(i).r_n_agg(1), '%.0f'));
-    elseif i == 3
-        xlbl2{i} = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
-            {' '}, num2str(parsdata(i).r_n_agg(1), '%.1f'));
+        xlbl2{i} = num2str(parsdata(i).r_n_agg(1), '%.0f');
+    elseif ismember(i, [2,3])
+        xlbl2{i} = num2str(parsdata(i).r_n_agg(1), '%.1f');
     else
-        xlbl2{i} = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
-            {' '}, num2str(parsdata(i).r_n_agg(1), '%.2f'));
+        xlbl2{i} = num2str(parsdata(i).r_n_agg(1), '%.2f');
     end
-    xlbl{i}
-
-    % concatinate shielding factors across aggregates
-    spp{i} = cat(1, parsdata(i).spp{:});
     
+    scatter(i-0.5, 1.2) % this is only to assign xticklabels
+    hold on
+    
+    % print mean of each distribution
+    text((i - 0.5), 1.03, ...
+        sprintf('$\\overline{s}_\\mathrm{pp}$ = %.2f', mu_spp(i)), ...
+        'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
+        'FontSize', 10)
+
     % total number of primary particles across all aggregates
     npp_tot(i) = length(spp{i});
     
@@ -177,24 +184,29 @@ for i = 1 : n_shot
         % ...the entire population of primary particles
     [f_spp{i}, xi_spp{i}] = ksdensity(spp{i});
     
-    % adjust data format for shade beneath the distribution
-    y_fill = [scale_spp * f_spp{i} + i * 0.5, i * 0.5 * ones(size(f_spp{i}))];
+    % generate proper data format for shading beneath the distribution
+    y_fill = [scale_spp * f_spp{i} + (i - 0.5),...
+        (i - 0.5) * ones(size(f_spp{i}))];
     x_fill = [xi_spp{i}, fliplr(xi_spp{i})];
-    % x_fill = x_fill';
-    % y_fill = y_fill';
     
-    plot(scale_spp * f_spp{i} + i * 0.5, xi_spp{i}, 'Color', clr2(i,:),...
+    plot(scale_spp * f_spp{i} + (i - 0.5), xi_spp{i}, 'Color', clr2(i,:),...
         'LineWidth', 2);
-    % fill(x_fill, y_fill, 'FaceColor', clr2(i,:), 'FaceAlpha', 0.3, 'EdgeColor', 'none');    
+    fill(y_fill, x_fill, clr2(i,:), ...
+        'FaceAlpha', 0.3, ...
+        'EdgeColor', 'none')
 
 end
+
+xticks((1 : n_shot) - 0.5)  % specify tick positions for horizontal axis
+xticklabels(xlbl2)  % assign labels to ticks
 
 % set plot appearances
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02])
-xlim([0 2.7])
+xlim([-0.3 4.8])
 ylim([0 1])
-% xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
-ylabel('Shielding factor [-]', 'interpreter', 'latex', 'FontSize', 18)
+xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
+    'FontSize', 18)
+ylabel('$s_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
 
