@@ -21,7 +21,7 @@ end
 ii1 = [1, 2, 3]; % snapshots of post-flame agglomeration to be plotted
 
 % baselines for locations of x-y-z axes in the plot of rendered aggregates
-x_triad1 = [0.05, 0.46];
+x_triad1 = [0.07, 0.46];
 y0_triad1 = [0.13, 0.98];
 
 % baselines for positions of tile titles (i.e. aggregate strcutural...
@@ -31,7 +31,10 @@ y0_ttl1 = [0.06, 0.96];
 
 % criteria on shielding ratio above which primary particles are...
     % ...not accounted when looking at projections of aggregates
-spp_star = 0.5;
+spp_star = [1, 0.75, 0.5];
+
+i_spp_star = 3; % selected criteria for plotting primary particle size...
+    % ...vs aggregate size
 
 %% render selected aggregates and colorcode their primary particles...
     % ...based on shielding factor %%
@@ -69,73 +72,73 @@ row_ttl1 = cell(3,1);
 
 % find triad position and title position
 y_triad1 = linspace(y0_triad1(1), y0_triad1(2), n_agg_f1 + 1);
-y_ttl1 = linspace(y0_ttl1(1), y0_ttl1(2), n_agg_f1 + 1);
+y_ttl1 = flip(linspace(y0_ttl1(1), y0_ttl1(2), n_agg_f1 + 1), 2);
 
 % render aggregates
-% for i = 1 : n_agg_f1
-% 
-%     % isometric view
-%     tl1{i,1} = nexttile(tl1_tot, 2*i-1);
-%     UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
-%         parsdata(ii1(i)).pp{jj1(i)}(:,4),...
-%         parsdata(ii1(i)).pp{jj1(i)}(:,5),...
-%         parsdata(ii1(i)).pp{jj1(i)}(:,2),...
-%         parsdata(ii1(i)).spp{jj1(i)}, opts1);
-%     clim([0 1])
-%     hold on
-%     UTILS.MAKEAX(f1, [x_triad1(1), y_triad1(i), 0.08, 0.08], '3d'); % triad
-% 
-%     % x-y plane
-%     tl1{i,2} = nexttile(tl1_tot, 2*i);
-%     UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
-%         parsdata(ii1(i)).pp{jj1(i)}(:,4),...
-%         parsdata(ii1(i)).pp{jj1(i)}(:,5),...
-%         parsdata(ii1(i)).pp{jj1(i)}(:,2),...
-%         parsdata(ii1(i)).spp{jj1(i)}, opts1);
-%     clim([0 1])
-%     hold on
-%     view(2)
-%     UTILS.MAKEAX(f1, [x_triad1(2), y_triad1(i), 0.08, 0.08], 'xy'); % triad
-% 
-%     % generate title text 
-%     row_ttl1{i} = strcat('$n_\mathrm{pp}$ =', {' '},...
-%         num2str(parsdata(ii1(i)).npp(jj1(i))),...
-%         ', $\sigma_\mathrm{pp}$ =', {' '},...
-%         num2str(parsdata(ii1(i)).sigmapp(jj1(i)), '%.2f'),...
-%         ', $n_\mathrm{hyb}$ =', {' '},...
-%         num2str(parsdata(ii1(i)).n_hyb(jj1(i))));
-% 
-%     % print aggregate structural information
-%     annotation('textbox', [x_ttl1(1), y_ttl1(i+1), x_ttl1(2), 0.03],...
-%         'String', row_ttl1{i}, 'HorizontalAlignment', 'center',...
-%         'VerticalAlignment', 'bottom', 'FontSize', 14, 'EdgeColor',...
-%         'none', 'Interpreter', 'latex');
-% 
-% end
-% 
-% % generate colorbar showing shielding values
-% cb1 = colorbar(tl1{1,1}, 'eastoutside');
-% cb1.Layout.Tile = 'south';
-% cb1.Label.String = 'Screening ratio [-]';
-% cb1.FontSize = 12;
-% cb1.Label.FontSize = 18;
-% cb1.TickLabelInterpreter = 'latex';
-% cb1.Label.Interpreter = 'latex';
-% cb1.LineWidth = 1;
+for i = 1 : n_agg_f1
+
+    % isometric view
+    tl1{i,1} = nexttile(tl1_tot, 2*i-1);
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,2),...
+        parsdata(ii1(i)).spp{jj1(i)}, opts1);
+    clim([0 1])
+    hold on
+    UTILS.MAKEAX(f1, [x_triad1(1), y_triad1(i), 0.08, 0.08], '3d'); % triad
+
+    % x-y plane
+    tl1{i,2} = nexttile(tl1_tot, 2*i);
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,2),...
+        parsdata(ii1(i)).spp{jj1(i)}, opts1);
+    clim([0 1])
+    hold on
+    view(2)
+    UTILS.MAKEAX(f1, [x_triad1(2), y_triad1(i), 0.08, 0.08], 'xy'); % triad
+
+    % generate title text 
+    row_ttl1{i} = strcat('$n_\mathrm{pp}$ =', {' '},...
+        num2str(parsdata(ii1(i)).npp(jj1(i))),...
+        ', $\sigma_\mathrm{pp}$ =', {' '},...
+        num2str(parsdata(ii1(i)).sigmapp(jj1(i)), '%.2f'),...
+        ', $n_\mathrm{hyb}$ =', {' '},...
+        num2str(parsdata(ii1(i)).n_hyb(jj1(i))));
+
+    % print aggregate structural information
+    annotation('textbox', [x_ttl1(1), y_ttl1(i), x_ttl1(2), 0.03],...
+        'String', row_ttl1{i}, 'HorizontalAlignment', 'center',...
+        'VerticalAlignment', 'bottom', 'FontSize', 14, 'EdgeColor',...
+        'none', 'Interpreter', 'latex');
+
+end
+
+% generate colorbar showing shielding values
+cb1 = colorbar(tl1{1,1}, 'eastoutside');
+cb1.Layout.Tile = 'south';
+cb1.Label.String = '$S_\mathrm{pp}$ [-]';
+cb1.FontSize = 12;
+cb1.Label.FontSize = 18;
+cb1.TickLabelInterpreter = 'latex';
+cb1.Label.Interpreter = 'latex';
+cb1.LineWidth = 1;
 
 %% probability density functions of shielding factor over the course...
     % ...of post-flame agglomeration %%
+
+% initialize figure
+f2 = figure;
+f2.Position = [100, 100, 500, 500];
+set(f2, 'color', 'white');
 
 % assign colors for pots-flame snapshots
 clr2 = colormap(hot);
 cind2 = round(1 + (length(clr2) - 1) .* (0.05 : 0.7 / (5 - 1) : 0.75)');
 clr2 = clr2(cind2,:);
 clr2(end,:) = [236,230,61] / 255;
-
-% initialize figure
-f2 = figure;
-f2.Position = [100, 100, 500, 500];
-set(f2, 'color', 'white');
 
 n_shot = length(parsdata); % number of snapshots to be plotted
 
@@ -177,7 +180,7 @@ for i = 1 : n_shot
     
     % print mean of each distribution
     text((i - 0.5), 1.03, ...
-        sprintf('$\\overline{s}_\\mathrm{pp}$ = %.2f', mu_spp(i)), ...
+        sprintf('$\\overline{S}_\\mathrm{pp}$ = %.2f', mu_spp(i)),...
         'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
         'FontSize', 10)
 
@@ -212,7 +215,7 @@ xlim([-0.3 4.8])
 ylim([0 1])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
     'FontSize', 18)
-ylabel('$s_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
 
 %% plot shielding factor vs. number of primary particles,...
     % ...colorcode based on polydispersity, and assign markers based...
@@ -253,8 +256,8 @@ for i = 1 : n_shot
     % allocate and calculate mean of shielding factor within...
         % ...individual aggregates
     parsdata(i).sagg = zeros(nagg(i),1);
-    for j = 1 : nagg(i)
-        parsdata(i).sagg(j) = mean(parsdata(i).spp{j});
+    for k = 1 : nagg(i)
+        parsdata(i).sagg(k) = mean(parsdata(i).spp{k});
     end
     
     scat3{i} = scatter(parsdata(i).npp, parsdata(i).sagg, ms3(i),...
@@ -275,7 +278,7 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
 xlim(bounds_npp_f3)
 ylim(bounds_sagg_f3)
 xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
-ylabel('$s_\mathrm{agg}$ [-]', 'interpreter', 'latex',...
+ylabel('$S_\mathrm{agg}$ [-]', 'interpreter', 'latex',...
     'FontSize', 18)
 
 % print legends
@@ -284,84 +287,258 @@ legend(cat(1, scat3{:}), legtxt3, 'interpreter', 'latex',...
 
 %% plot distributions of observed primary particle diameters %%
 
+% number of shielding criteria
+n_spp_star = length(spp_star);
+
 % initialize figure
 f4 = figure;
-f4.Position = [150, 150, 500, 500];
+f4.Position = [200, 75, 400 * n_spp_star, 800];
 set(f4, 'color', 'white');
 
-% allocate ensemble primary particle diameters observed considering...
-    % ...shielding
-dpps_2d{i} = cell(n_shot,1);
+% initialize layout
+tl4 = tiledlayout(2, n_spp_star);
+tl4.TileSpacing = 'compact';
+tl4.Padding = 'compact';
 
-% allocate number of observed primary particle diameters in 2d projections
-n_dpps_2d= zeros(n_shot,1);
+% allocate observed primary particle diameter in 2d projections given a...
+    % ...certain spp_star ((:,:,1) -> ensemble primary particle diameters,...
+    % ...; (:,:,2) -> geometric mean of primary particle diameter within...
+    % ...individual aggregates)
+dpp_2d = cell(n_shot, n_spp_star, 2);
+
+% allocate ensemble number of observed primary particle diameters
+n_dpp_2d = zeros(n_shot, n_spp_star);
+
+% ensemble geometric mean of primary particle diameter in 3d 
+dpp_ens = cat(1, parsdata(1).pp{:});
+dpp_ens = geomean(dpp_ens(:,2));
 
 % allocate boxplots
-bp4 = cell(n_shot,1);
+bp4 = cell(n_shot, n_spp_star, 2);
 
-% calculate and plot ensemble mean of primary particle diameter in 3D
-dpp_ens = geomean(cat(1, parsdata(1).dpp));
-plt4_ens = plot(linspace(0, n_shot+2, 100), 1e9 * repmat(dpp_ens,1,100),...
-    'Color', [0, 0, 0], 'LineWidth', 1.5, 'LineStyle', ':');
-hold on
+% allocate subplot titles
+titxt4 = cell(1, n_spp_star);
+
+% allocate limits on y axes
+bounds_dpp_f4 = zeros(2, n_spp_star, 2);
+
+% extension factors on y axis limits
+c_ylim = [0.1, 0.05];
+
+% allocate decision variable for whether primary particles are (not)...
+    % ...screened
+kk = cell(n_shot, n_spp_star);
 
 for i = 1 : n_shot
+        
+    for j = 1 : n_spp_star
+        
+        % allocate for individual aggregates
+        dpp_2d{i,j,2} = zeros(nagg(i), 1);
+        
+        % allocate shielding factor decision variable for each snapshot
+        kk{i,j} = cell(nagg(i),1);
 
-    % allocate and calculate geometric mean of primary particle...
-    % ...diameter in 2d projections
-    parsdata(i).dpp_2d = zeros(nagg(i),1);
-    for j = 1 : nagg(i)
-        jj = parsdata(i).spp{j} > spp_star;
-        parsdata(i).dpp_2d(j) = geomean(parsdata(i).pp{j}(jj,2));
+        % filter primary particles based on spp_star and calculate...
+            % ...geometric means of their diameter
+        for k = 1 : nagg(i)
+            kk{i,j}{k} = parsdata(i).spp{k} <= spp_star(j);
+            dpp_2d{i,j,2}(k) = geomean(parsdata(i).pp{k}(kk{i,j}{k},2));
+        end
+    
+        % compile primary particles acrosss all aggregates
+        dpp_2d{i,j,1} = cat(1, parsdata(i).pp{:});
+
+        % filter ensemble of primary particles based on shielding...
+            % ...factor and calculate geometric mean
+        dpp_2d{i,j,1} = dpp_2d{i,j,1}(cat(1, kk{i,j}{:}),2);
+        
+        % total number of observable primary particles
+        n_dpp_2d(i,j) = length(dpp_2d{i,j,1});
+    
+        for l = 1 : 2
+
+            nexttile(j + (l-1) * n_spp_star)
+
+            % plot distribution of primary particle diameter
+            bp4{i,j,l} = boxplot(1e9 * dpp_2d{i,j,l}, 'Positions', i,...
+                'Notch', 'on', 'Symbol', 'o', 'Widths', 0.5);
+            hold on
+        
+            % Find the box object
+            boxObj = findobj(bp4{i,j,l}, 'Tag', 'Box');    
+            
+            % fill inside the box
+            patch(get(boxObj, 'XData'), get(boxObj, 'YData'), clr2(i, :),...
+                'FaceAlpha', 0.3, 'EdgeColor', clr2(i, :), 'LineWidth', 1);
+            
+            % adjust the median line
+            boxMed = findobj(bp4{i,j,l}, 'Tag', 'Median');
+            set(boxMed, 'Color', clr2(i, :), 'LineWidth', 2);
+            
+            % adjust outlier markers
+            outliers = findobj(bp4{i,j,l}, 'Tag', 'Outliers');
+            outliers.MarkerEdgeColor = clr2(i, :);
+            outliers.MarkerSize = 3;
+            
+            % adjust whiskers
+            upwhisker = findobj(bp4{i,j,l},'type', 'line', 'tag', 'Upper Whisker');
+            set(upwhisker, 'linestyle', '-');
+            lowwhisker= findobj(bp4{i,j,l}, 'type', 'line','tag', 'Lower Whisker');
+            set(lowwhisker, 'linestyle', '-');
+    
+            xticks(1 : n_shot)  % specify tick positions for horizontal axis
+            xticklabels(xlbl2)  % assign labels to ticks
+            
+            if i == n_shot
+    
+                % % calculate and plot ensemble mean
+                % kkk = cat(1, parsdata(i).spp{:}) <= spp_star(j);
+                % dpp_ens(j) = geomean(pp_ens(kkk,2));
+                plt4_ens = plot(linspace(0, n_shot+1, 100),...
+                    1e9 * repmat(dpp_ens,1,100), 'Color', [0, 0, 0],...
+                    'LineWidth', 1.5, 'LineStyle', ':');
+            
+                % set plot appearances
+                box on
+                set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+                    'TickLength', [0.02 0.02], 'YScale', 'log')
+                xlim([0.25 n_shot+0.75])
+                
+                % get ymin and ymax
+                bounds_dpp_f4(1,j,l) = min(1e9 * cat(1,dpp_2d{:,j,l}));
+                bounds_dpp_f4(2,j,l) = max(1e9 * cat(1,dpp_2d{:,j,l}));
+                
+                % assign label for vertical axes
+                if j == 1
+                    if l ==1
+                        ylabel('$d_\mathrm{pp}^{(i)}$ [nm]',...
+                            'interpreter', 'latex', 'FontSize', 18)
+                    else
+                        ylabel('$d_\mathrm{pp}$ [nm]',...
+                            'interpreter', 'latex', 'FontSize', 18)
+                    end
+                end
+            end
+
+            nexttile(j)
+
+            % make a title for vertical tiles showing enforced spp_star
+            titxt4{j} = sprintf('$S_\\mathrm{pp}^\\mathrm{*}$ = %.2f',...
+                spp_star(j));
+            title(titxt4{j}, 'interpreter', 'latex', 'FontSize', 14)
+
+            % add some space behind title
+            subtitle(' ', 'interpreter', 'latex', 'FontSize', 10)
+
+            yticks(cat(2, linspace(1,10,10), linspace(20,100,9)))
+
+        end
+        
     end
 
-    % compile all primary particles acrosss aggregates
-    dpps_2d{i} = cat(1, parsdata(i).dpp_2d);
-
-    % total number of observable primary particles
-    n_dpps_2d = length(dpps_2d{i});
-
-    % plot distribution of ensemble primary particle size
-    bp4{i} = boxplot(1e9 * dpps_2d{i}, 'Positions', i,...
-        'Notch', 'on', 'Symbol', 'o', 'Widths', 0.5);
-    
-    % Find the box object
-    boxObj = findobj(bp4{i}, 'Tag', 'Box');    
-    
-    % fill inside the box
-    patch(get(boxObj, 'XData'), get(boxObj, 'YData'), clr2(i, :),...
-        'FaceAlpha', 0.3, 'EdgeColor', clr2(i, :), 'LineWidth', 1);
-    
-    % adjust the median line
-    boxMed = findobj(bp4{i}, 'Tag', 'Median');
-    set(boxMed, 'Color', clr2(i, :), 'LineWidth', 2);
-    
-    % adjust outlier markers
-    outliers = findobj(bp4{i}, 'Tag', 'Outliers');
-    outliers.MarkerEdgeColor = clr2(i, :);
-    outliers.MarkerSize = 3;
-    
-    % adjust whiskers
-    upwhisker = findobj(bp4{i},'type', 'line', 'tag', 'Upper Whisker');
-    set(upwhisker, 'linestyle', '-');
-    lowwhisker= findobj(bp4{i}, 'type', 'line','tag', 'Lower Whisker');
-    set(lowwhisker, 'linestyle', '-');
-    
 end
 
-xticks(1 : n_shot)  % specify tick positions for horizontal axis
-xticklabels(xlbl2)  % assign labels to ticks
+xlabel(tl4, '$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
+    'latex', 'FontSize', 18) % label for horizontal axis
+
+% legend showing ensemble diameter for the lower tiles
+legend(plt4_ens, '$\langle{d_\mathrm{pp}}\rangle$',...
+    'interpreter', 'latex', 'FontSize', 14, 'location', 'southeast')
+
+% set identical limits on y axis
+for j = 1 : n_spp_star
+    for l = 1 : 2
+        nexttile((l-1) * n_spp_star + j)      
+        ylim([(1 - c_ylim(l)) * min(bounds_dpp_f4(1,:,l)),...
+            (1 + c_ylim(l)) * max(bounds_dpp_f4(2,:,l));])
+    end
+end
+
+%% plot mean primary particle diameter vs. aggregate area diameter...
+    % ..."considering shielding" %%
+
+% initialize figure
+f5 = figure(5);
+f5.Position = [250, 125, 750, 500];
+set(f5, 'color', 'white')
+
+plt5 = cell(n_shot + 2, 1); % initialize placholders for plots
+
+% assign variables for universal correlation
+D_TEM = 0.35; % exponent
+dpp_100 = 17.8; % pefactor
+da_lim_uc = [1e0 2e4];  % limits on the projected area diameter
+n_da_uc = 1e4; % number of data
+uc1 = @(y) dpp_100 * (y / 100) .^ D_TEM; % on-demand function for the...
+    % ...forward correlation in the geometrical domain (dpp as a...
+    % ...function of da in [nm])
+r_uc1 = (da_lim_uc(2) / da_lim_uc(1)) ^ (1 / (n_da_uc - 1));
+da_uc = da_lim_uc(1) * ones(n_da_uc,1) .* r_uc1 .^ (((1 : n_da_uc) - 1)');
+dpp_uc = uc1(da_uc);
+
+% plot universal correlation of of Olfert & Rogak (2019)
+plt5{end} = plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+
+% plot ensemble primary particle diameter
+plt5{end-1} = plot(da_uc, 1e9 * repmat(dpp_ens, size(da_uc)),...
+    'Color', [0, 0, 0], 'LineStyle', ':', 'LineWidth', 2);
+
+% plot dpp (2D projections) vs da over post-flame snapshots
+for i = 1 : n_shot
+    plt5{i} = scatter(1e9 * parsdata(i).da, 1e9 * dpp_2d{i,i_spp_star,2},...
+        ms3(i), clr2(i,:), mt3{i}, 'LineWidth', 1);
+end
 
 % set plot appearances
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
-    'TickLength', [0.02 0.02], 'YScale', 'log')
-xlim([0 n_shot+1])
-xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
-    'FontSize', 18)
-ylabel('$\overline{d}_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter', 'latex',...
-    'FontSize', 18)
-xlim([0.25 n_shot+0.75])
-legend(plt4_ens, '$\langle{d_\mathrm{pp}}\rangle$',...
-    'interpreter', 'latex', 'FontSize', 14, 'location', 'northeast')
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter',...
+    'latex', 'FontSize', 18)
+legend(cat(1, plt5{:}), cat(1,legtxt3, {'$\langle{d}_\mathrm{pp}\rangle$'},...
+    {'Olfert $\&$ Rogak (2019)'}), 'interpreter', 'latex', 'FontSize', 14,...
+    'NumColumns', 1, 'Location', 'eastoutside');
 
+% apply proper bounds to x and y axes
+bounds_da_f5 = [1e9 * 0.8 * min(cat(1, parsdata.da)),...
+    1e9 * 1.2 * max(cat(1, parsdata.da))];
+bounds_dpp_f5 = [1e9 * 0.95 * min(cat(1, dpp_2d{:,3,2})),...
+    1e9 * 1.05 * max(cat(1, dpp_2d{:,3,2}))];
+xlim(bounds_da_f5)
+ylim(bounds_dpp_f5)
+
+% title stating criteria for shielding factor
+title(sprintf('$S_\\mathrm{pp}^\\mathrm{*}$ = %.2f', spp_star(i_spp_star)),...
+    'interpreter', 'latex', 'FontSize', 14)
+% add some space behind title
+subtitle(' ', 'interpreter', 'latex', 'FontSize', 4)
+
+%% save plots and workspace %%
+
+% make a directory to save outputs
+dir0_out = datestr(datetime('now'));
+dir0_out = regexprep(dir0_out, ':', '-');
+dir0_out = regexprep(dir0_out, ' ', '_');
+dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
+if ~isfolder(dir_out)
+    mkdir(dir_out); % if it doesn't exist, create the directory
+end
+
+% save worksapce
+save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
+
+% print figures
+exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f2, strcat(dir_out, 'dist-shield-pp.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f3, strcat(dir_out, 'scat-shield-agg.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f4, strcat(dir_out, 'dpp-bias.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f5, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
