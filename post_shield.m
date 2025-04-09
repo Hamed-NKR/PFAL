@@ -210,3 +210,71 @@ xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
     'FontSize', 18)
 ylabel('$s_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
 
+%% plot shielding factor vs. number of primary particles,...
+    % ...colorcode based on polydispersity, and assign markers based...
+    % ...on number of hybridity regions
+
+% initialize figure
+f3 = figure;
+f3.Position = [150, 150, 500, 500];
+set(f3, 'color', 'white');
+
+% allocate number of aggregates in each snaphot
+nagg = zeros(n_shot,1);
+
+ms3 = [8, 16, 12, 16, 8]; % marker size
+mt3 = {'^', 's', 'p', '*', 'o'}; % marker type
+
+legtxt3 = cell(n_shot, 1); % allocate legends for post-flame snapshots
+
+scat3 = cell(n_shot, 1); % allocate scatterplots
+
+for i = 1 : n_shot
+    
+    % generate label for snapshots
+    if i == 1
+        legtxt3(i) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
+            {' '}, num2str(parsdata(i).r_n_agg(1), '%.0f'));
+    elseif ismember(i, [2,3])
+        legtxt3(i) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
+            {' '}, num2str(parsdata(i).r_n_agg(1), '%.1f'));
+    elseif ismember(i, [4,5])
+        legtxt3(i) = strcat('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ =',...
+            {' '}, num2str(parsdata(i).r_n_agg(1), '%.2f'));
+    end
+
+    nagg(i) = length(parsdata(i).pp); % find number of aggregates
+
+    % allocate and calculate mean of shielding factor within...
+        % ...individual aggregates
+    parsdata(i).sagg = zeros(nagg(i),1);
+    for j = 1 : nagg(i)
+        parsdata(i).sagg(j) = mean(parsdata(i).spp{j});
+    end
+    
+    scat3{i} = scatter(parsdata(i).npp, parsdata(i).sagg, ms3(i),...
+        clr2(i,:), mt3{i}, 'LineWidth', 1);
+    hold on
+
+end
+
+% find bounds for x and y axes
+bounds_npp_f3 = [0.7 * min(cat(1, parsdata.npp)),...
+    1.3 * max(cat(1, parsdata.npp))];
+bounds_sagg_f3 = [0.95 * min(cat(1, parsdata.sagg)),...
+    1.05 * max(cat(1, parsdata.sagg))];
+
+% set plot appearances
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+xlim(bounds_npp_f3)
+ylim(bounds_sagg_f3)
+xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$s_\mathrm{agg}$ [-]', 'interpreter', 'latex',...
+    'FontSize', 18)
+
+% print legends
+legend(cat(1, scat3{:}), legtxt3, 'interpreter', 'latex',...
+    'FontSize', 14, 'Location', 'southeast');
+
