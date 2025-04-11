@@ -8,8 +8,8 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'D:\Users\hmdni\OneDrive\Documents\GitHub\MCEM\outputs\Shield_07-Apr-2025_13-01-18';
-fname_in = 'Shield_07-Apr-2025_13-01-18';
+fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
 
@@ -84,7 +84,7 @@ for i = 1 : n_agg_f1
         parsdata(ii1(i)).pp{jj1(i)}(:,5),...
         parsdata(ii1(i)).pp{jj1(i)}(:,2),...
         parsdata(ii1(i)).spp{jj1(i)}, opts1);
-    clim([0 1])
+    % clim([0 1])
     hold on
     UTILS.MAKEAX(f1, [x_triad1(1), y_triad1(i), 0.08, 0.08], '3d'); % triad
 
@@ -95,7 +95,7 @@ for i = 1 : n_agg_f1
         parsdata(ii1(i)).pp{jj1(i)}(:,5),...
         parsdata(ii1(i)).pp{jj1(i)}(:,2),...
         parsdata(ii1(i)).spp{jj1(i)}, opts1);
-    clim([0 1])
+    % clim([0 1])
     hold on
     view(2)
     UTILS.MAKEAX(f1, [x_triad1(2), y_triad1(i), 0.08, 0.08], 'xy'); % triad
@@ -178,12 +178,19 @@ for i = 1 : n_shot
     
     scatter(i-0.5, 1.2) % this is only to assign xticklabels
     
-    % print mean of each distribution
-    text((i - 0.5), 1.03, ...
-        sprintf('$\\overline{S}_\\mathrm{pp}$ = %.2f', mu_spp(i)),...
-        'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
-        'FontSize', 10)
-
+    if i == 1
+        % print mean of each distribution
+        text((i - 0.85), 1.03, ...
+            sprintf('$\\overline{S}_\\mathrm{pp}$ = %.2f', mu_spp(i)),...
+            'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
+            'FontSize', 12)
+    else
+        % print mean of each distribution
+        text((i - 0.5), 1.03, num2str(mu_spp(i), '%.2f'),...
+            'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
+            'FontSize', 12)    
+    end
+    
     % total number of primary particles across all aggregates
     npp_tot(i) = length(spp{i});
     
@@ -211,7 +218,7 @@ xticklabels(xlbl2)  % assign labels to ticks
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02])
-xlim([-0.3 4.8])
+xlim([-0.5 5])
 ylim([0 1])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
     'FontSize', 18)

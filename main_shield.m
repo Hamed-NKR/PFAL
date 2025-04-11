@@ -22,7 +22,7 @@ warning('off')
 %% initialize the script %%
 
 % location of previously saved aggregate data
-fdir_in = 'F:\DLCA2\outputs\postLD2-01-Apr-2025_11-54-39_LD2-25NOV24';
+fdir_in = 'E:\DLCA2\outputs\postLD2-01-Apr-2025_11-54-39_LD2-25NOV24';
 fname_in = 'Post_LD2-25NOV24';
 
 varnames = {'parsdata'}; % varaiables to be imported
