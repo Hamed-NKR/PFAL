@@ -8,7 +8,7 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fdir_in = 'F:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
 fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
@@ -65,6 +65,8 @@ tl1_tot.Padding = 'compact';
 opts1.cc = 'on';
 opts1.cm = colormap("abyss");
 opts1.cm = flip(opts1.cm,1);
+opts.clim = [0 1];  % enforce full range from 0 to 1
+opts.ft = 0.9;
 
 % placeholders for tiles
 tl1 = cell(n_agg_f1, 2);
@@ -467,8 +469,13 @@ end
 
 % initialize figure
 f5 = figure(5);
-f5.Position = [250, 125, 750, 500];
+f5.Position = [250, 125, 800, 500];
 set(f5, 'color', 'white')
+
+% initialize layout
+tl5 = tiledlayout(1, 2);
+tl5.TileSpacing = 'compact';
+tl5.Padding = 'compact';
 
 plt5 = cell(n_shot + 2, 1); % initialize placholders for plots
 
@@ -483,6 +490,46 @@ uc1 = @(y) dpp_100 * (y / 100) .^ D_TEM; % on-demand function for the...
 r_uc1 = (da_lim_uc(2) / da_lim_uc(1)) ^ (1 / (n_da_uc - 1));
 da_uc = da_lim_uc(1) * ones(n_da_uc,1) .* r_uc1 .^ (((1 : n_da_uc) - 1)');
 dpp_uc = uc1(da_uc);
+
+nexttile(1)
+
+% plot universal correlation of of Olfert & Rogak (2019)
+plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+
+% plot ensemble primary particle diameter
+plot(da_uc, 1e9 * repmat(dpp_ens, size(da_uc)),...
+    'Color', [0, 0, 0], 'LineStyle', ':', 'LineWidth', 2);
+
+% plot dpp (2D projections) vs da over post-flame snapshots
+for i = 1 : n_shot
+    scatter(1e9 * parsdata(i).da, 1e9 * dpp_2d{i,1,2},...
+        ms3(i), clr2(i,:), mt3{i}, 'LineWidth', 1);
+end
+
+% set plot appearances
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter',...
+    'latex', 'FontSize', 18)
+
+% apply proper bounds to x and y axes
+bounds_da_f5 = [1e9 * 0.8 * min(cat(1, parsdata.da)),...
+    1e9 * 1.2 * max(cat(1, parsdata.da))];
+bounds_dpp_f5 = [1e9 * 0.95 * min(cat(1, dpp_2d{:,3,2})),...
+    1e9 * 1.05 * max(cat(1, dpp_2d{:,3,2}))];xlim(bounds_da_f5)
+ylim(bounds_dpp_f5)
+
+% title stating criteria for shielding factor
+title(sprintf('$S_\\mathrm{pp}^\\mathrm{*}$ = %.2f', spp_star(1)),...
+    'interpreter', 'latex', 'FontSize', 14)
+% add some space behind title
+subtitle(' ', 'interpreter', 'latex', 'FontSize', 8)
+
+nexttile(2)
 
 % plot universal correlation of of Olfert & Rogak (2019)
 plt5{end} = plot(da_uc, dpp_uc, 'Color', [0.4940 0.1840 0.5560],...
@@ -504,17 +551,8 @@ box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
-ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter',...
-    'latex', 'FontSize', 18)
-legend(cat(1, plt5{:}), cat(1,legtxt3, {'$\langle{d}_\mathrm{pp}\rangle$'},...
-    {'Olfert $\&$ Rogak (2019)'}), 'interpreter', 'latex', 'FontSize', 14,...
-    'NumColumns', 1, 'Location', 'eastoutside');
 
 % apply proper bounds to x and y axes
-bounds_da_f5 = [1e9 * 0.8 * min(cat(1, parsdata.da)),...
-    1e9 * 1.2 * max(cat(1, parsdata.da))];
-bounds_dpp_f5 = [1e9 * 0.95 * min(cat(1, dpp_2d{:,3,2})),...
-    1e9 * 1.05 * max(cat(1, dpp_2d{:,3,2}))];
 xlim(bounds_da_f5)
 ylim(bounds_dpp_f5)
 
@@ -522,7 +560,12 @@ ylim(bounds_dpp_f5)
 title(sprintf('$S_\\mathrm{pp}^\\mathrm{*}$ = %.2f', spp_star(i_spp_star)),...
     'interpreter', 'latex', 'FontSize', 14)
 % add some space behind title
-subtitle(' ', 'interpreter', 'latex', 'FontSize', 4)
+subtitle(' ', 'interpreter', 'latex', 'FontSize', 8)
+
+lgd5 = legend(cat(1, plt5{:}), cat(1,legtxt3,...
+    {'$\langle{d}_\mathrm{pp}\rangle$'}, {'Olfert $\&$ Rogak (2019)'}),...
+    'interpreter', 'latex', 'FontSize', 14);
+lgd5.Layout.Tile = 'south';
 
 %% save plots and workspace %%
 
