@@ -65,8 +65,8 @@ tl1_tot.Padding = 'compact';
 opts1.cc = 'on';
 opts1.cm = colormap("abyss");
 opts1.cm = flip(opts1.cm,1);
-opts.clim = [0 1];  % enforce full range from 0 to 1
-opts.ft = 0.9;
+opts1.clim = [0 1];  % enforce full range from 0 to 1
+opts1.ft = 0.9;
 
 % placeholders for tiles
 tl1 = cell(n_agg_f1, 2);
@@ -121,7 +121,7 @@ end
 % generate colorbar showing shielding values
 cb1 = colorbar(tl1{1,1}, 'eastoutside');
 cb1.Layout.Tile = 'south';
-cb1.Label.String = '$S_\mathrm{pp}$ [-]';
+cb1.Label.String = '$S_\mathrm{pp}^\mathrm{(i)}$ [-]';
 cb1.FontSize = 12;
 cb1.Label.FontSize = 18;
 cb1.TickLabelInterpreter = 'latex';
@@ -190,7 +190,7 @@ for i = 1 : n_shot
     if i == 1
         % print mean of each distribution
         text((i - 0.85), 1.03, ...
-            sprintf('$\\overline{S}_\\mathrm{pp}$ = %.2f', mu_spp(i)),...
+            sprintf('$\\langle{S}_\\mathrm{pp}\\rangle$ = %.2f', mu_spp(i)),...
             'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
             'FontSize', 12)
     else
@@ -212,6 +212,18 @@ for i = 1 : n_shot
         (i - 0.5) * ones(size(f_spp{i}))];
     x_fill = [xi_spp{i}, fliplr(xi_spp{i})];
     
+    % plot shielding distribution for initial snapshot (for comparison)
+    if i == 1
+        % save initial distribution
+        y_fill_0 = y_fill;
+        x_fill_0 = x_fill;
+    else
+        fill(y_fill_0 + (i - 1), x_fill_0, clr2(1,:), ...
+            'FaceAlpha', 0.1, ...
+            'EdgeColor', 'none')
+    end
+
+    % plot shielding distribution for current snapshot
     plot(scale_spp * f_spp{i} + (i - 0.5), xi_spp{i}, 'Color', clr2(i,:),...
         'LineWidth', 2);
     fill(y_fill, x_fill, clr2(i,:), ...
@@ -231,7 +243,7 @@ xlim([-0.5 5])
 ylim([0 1])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
     'FontSize', 18)
-ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$S_\mathrm{pp}^\mathrm{(i)}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
 
 %% plot shielding factor vs. number of primary particles,...
     % ...colorcode based on polydispersity, and assign markers based...
@@ -291,7 +303,7 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
 xlim(bounds_npp_f2)
 ylim(bounds_sagg_f2)
 xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
-ylabel('$S_\mathrm{agg}$ [-]', 'interpreter', 'latex',...
+ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex',...
     'FontSize', 18)
 yticks(cat(2, linspace(0.01,0.1,10), linspace(0.2,1,9)))
 
@@ -518,7 +530,7 @@ box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
-ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter',...
+ylabel('$d_\mathrm{pp}$ [nm]', 'interpreter',...
     'latex', 'FontSize', 18)
 
 % apply proper bounds to x and y axes
@@ -572,26 +584,117 @@ lgd4 = legend(cat(1, plt4{:}), cat(1,legtxt2,...
     'interpreter', 'latex', 'FontSize', 14, 'NumColumns', 3);
 lgd4.Layout.Tile = 'south';
 
-%% save plots and workspace %%
+%% a more detailed version of rendering in figure 1 (for thesis) %%
 
-% make a directory to save outputs
-dir0_out = datestr(datetime('now'));
-dir0_out = regexprep(dir0_out, ':', '-');
-dir0_out = regexprep(dir0_out, ' ', '_');
-dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
-if ~isfolder(dir_out)
-    mkdir(dir_out); % if it doesn't exist, create the directory
+% % display selected properties
+% for i = 1 : n_agg_f1
+%     fprintf('Group %d: npp = %d, sigmapp = %.4f, n_hyb = %d\n', i, ...
+%         parsdata(ii1(i)).npp(jj1(i)), ...
+%         parsdata(ii1(i)).sigmapp(jj1(i)), ...
+%         parsdata(ii1(i)).n_hyb(jj1(i)));
+% end
+
+% initialize figure
+f5 = figure(5);
+f5.Position = [250, 50, n_agg_f1 * 250, n_agg_f1 * 250];
+set(f5, 'color', 'white')
+tl5_tot = tiledlayout(n_agg_f1,3);
+tl5_tot.TileSpacing = 'compact';
+tl5_tot.Padding = 'compact';
+
+% generate colormap
+opts5.cc = 'on';
+opts5.cm = colormap("abyss");
+opts5.cm = flip(opts5.cm,1);
+opts5.clim = [0 1];  % enforce full range from 0 to 1
+opts5.ft = 0.9;
+
+% placeholders for tiles
+tl5 = cell(n_agg_f1, 3);
+row_ttl5 = cell(3,1);
+
+% % find triad position and title position
+% y_triad5 = linspace(y0_triad1(1), y0_triad1(2), n_agg_f1 + 1);
+% y_ttl5 = flip(linspace(y0_ttl1(1), y0_ttl1(2), n_agg_f1 + 1), 2);
+
+% render aggregates
+for i = 1 : n_agg_f1
+
+    % isometric view
+    tl5{i,1} = nexttile(tl5_tot, 3*i-2);
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,2),...
+        parsdata(ii1(i)).spp{jj1(i)}, opts5);
+    hold on
+    % UTILS.MAKEAX(f1, [x_triad1(1), y_triad1(i), 0.08, 0.08], '3d'); % triad
+    
+    kk1 = parsdata(ii1(i)).spp{jj1(i)} < 0.5;
+    kk2 = parsdata(ii1(i)).spp{jj1(i)} >= 0.5;
+
+    tl5{i,2} = nexttile(tl5_tot, 3*i-1);
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(kk1,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk1,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk1,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk1,2),...
+        parsdata(ii1(i)).spp{jj1(i)}(kk1), opts5);
+
+    tl5{i,3} = nexttile(tl5_tot, 3*i);
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(kk2,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk2,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk2,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk2,2),...
+        parsdata(ii1(i)).spp{jj1(i)}(kk2), opts5);
+
+    % % generate title text 
+    % row_ttl1{i} = strcat('$n_\mathrm{pp}$ =', {' '},...
+    %     num2str(parsdata(ii1(i)).npp(jj1(i))),...
+    %     ', $\sigma_\mathrm{pp}$ =', {' '},...
+    %     num2str(parsdata(ii1(i)).sigmapp(jj1(i)), '%.2f'),...
+    %     ', $n_\mathrm{hyb}$ =', {' '},...
+    %     num2str(parsdata(ii1(i)).n_hyb(jj1(i))));
+    % 
+    % % print aggregate structural information
+    % annotation('textbox', [x_ttl1(1), y_ttl1(i), x_ttl1(2), 0.03],...
+    %     'String', row_ttl1{i}, 'HorizontalAlignment', 'center',...
+    %     'VerticalAlignment', 'bottom', 'FontSize', 14, 'EdgeColor',...
+    %     'none', 'Interpreter', 'latex');
+    % 
 end
 
-% save worksapce
-save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
+% % generate colorbar showing shielding values
+% cb1 = colorbar(tl1{1,1}, 'eastoutside');
+% cb1.Layout.Tile = 'south';
+% cb1.Label.String = '$S_\mathrm{pp}^\mathrm{(i)}$ [-]';
+% cb1.FontSize = 12;
+% cb1.Label.FontSize = 18;
+% cb1.TickLabelInterpreter = 'latex';
+% cb1.Label.Interpreter = 'latex';
+% cb1.LineWidth = 1;
+% 
+% 
 
-% print figures
-exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
-    'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f2, strcat(dir_out, 'dist-shield.jpg'),...
-    'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f3, strcat(dir_out, 'dpp-bias.jpg'),...
-    'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f4, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
-    'BackgroundColor','none', 'Resolution', 300)
+%% save plots and workspace %%
+% 
+% % make a directory to save outputs
+% dir0_out = datestr(datetime('now'));
+% dir0_out = regexprep(dir0_out, ':', '-');
+% dir0_out = regexprep(dir0_out, ' ', '_');
+% dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
+% if ~isfolder(dir_out)
+%     mkdir(dir_out); % if it doesn't exist, create the directory
+% end
+% 
+% % save worksapce
+% save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
+% 
+% % print figures
+% exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
+%     'BackgroundColor','none', 'Resolution', 300)
+% exportgraphics(f2, strcat(dir_out, 'dist-shield.jpg'),...
+%     'BackgroundColor','none', 'Resolution', 300)
+% exportgraphics(f3, strcat(dir_out, 'dpp-bias.jpg'),...
+%     'BackgroundColor','none', 'Resolution', 300)
+% exportgraphics(f4, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
+%     'BackgroundColor','none', 'Resolution', 300)
