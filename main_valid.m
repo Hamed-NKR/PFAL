@@ -26,7 +26,7 @@ fname_exp = 'Effective-Density-Compiled_17-Mar-2025_05-00-44';
 
 bayesresol = 500; % number of increment for bayesian fit 
 
-%% temporal distribution of simulation effective density vs. experiments %%
+%% load all simulations %%
 
 % load the simulation (gammapp = 1.3, scattered correlation)
 for i = 1 : numel(varnames_simul)
@@ -64,6 +64,8 @@ end
 parsdata_10_flat = parsdata; pars_flt_10_flat = pars_flt;
 bayesfit_10_flat = bayesfit;
 clear parsdata pars_flt bayesfit
+
+%% temporal distribution of simulation effective density vs. experiments %%
 
 % initialize figure
 f1 = figure(1);
@@ -105,8 +107,6 @@ plt11{end} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
     'LineStyle', '-.', 'LineWidth', 3);
 hold on
 legtxt11{end} = 'Olfert $\&$ Rogak (2019)';
-
-rho0 = 1860; % material density for soot
 
 for i = ii0
     
@@ -613,6 +613,60 @@ xlabel(tl4, '$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
 ylabel(tl4, '$d_\mathrm{pp}$ [nm]', 'interpreter',...
     'latex', 'FontSize', 18)
 
+%% a revised version of simulations against experiments (for thesis) %%
+
+% initialize figure
+f5 = figure(5);
+f5.Position = [250, 50, 600, 700];
+set(f5, 'color', 'white')
+
+% initialize placholders for plots & legends
+plt5 = cell(5, 1);
+legtxt5 = cell(5, 1);
+
+% plot universal correlation for effective density vs. mobility diameter
+plt5{end} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
+    'LineStyle', '-.', 'LineWidth', 3);
+hold on
+
+%%% plot fits to the simulation data %%%
+% no agglomeration (r_n_agg = 1; initial moment in second LD stage)
+plt5{1} = loglog(bayesfit_valid(1).xfit, bayesfit_valid(1).yfit,...
+    'Color', hex2rgb('#9F5255'), 'LineWidth', 2); 
+fill([bayesfit_valid(1).xfit; flipud(bayesfit_valid(1).xfit)],...
+    [bayesfit_valid(1).bounds_yfit(:,1); flipud(bayesfit_valid(1).bounds_yfit(:,2))],...
+    hex2rgb('#9F5255'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
+% high agglomeration (0.03 < r_n_agg < 0.1)
+plt5{2} = loglog(bayesfit_valid(2).xfit, bayesfit_valid(2).yfit,...
+    'Color', hex2rgb('#006A71'), 'LineWidth', 2);
+fill([bayesfit_valid(2).xfit; flipud(bayesfit_valid(2).xfit)],...
+    [bayesfit_valid(2).bounds_yfit(:,1); flipud(bayesfit_valid(2).bounds_yfit(:,2))],...
+    hex2rgb('#006A71'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
+
+% plot experimental data
+plt5{3} = scatter(dist_grp(1).d_mode, dist_grp(1).rho_eff,...
+    30, hex2rgb('#E16A54'), 'v', 'LineWidth', 1.5); % low agglomeration
+plt5{4} = scatter(dist_grp(3).d_mode, dist_grp(3).rho_eff,...
+    45, hex2rgb('#9ACBD0'), 'h', 'LineWidth', 1.5); % high agglomeration
+
+% make legends
+legtxt5 = {'No-Aglom simulation', 'Hi-Aglom simulation',...
+    'Lo-Aglom experiment', 'Hi-Aglom experiment',...
+    'Olfert $\&$ Rogak (2019)'};
+
+% set plot appearances
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
+xlim([25 1000])
+ylim([35 1250])
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
+    'FontSize', 18)
+legend(cat(1, plt5{:}), legtxt5, 'interpreter', 'latex',...
+    'FontSize', 14, 'NumColumns', 2, 'orientation', 'horizontal',...
+    'Location', 'southoutside')
+
 %% save plots and workspace %%
 
 % make a directory to save outputs
@@ -628,12 +682,14 @@ end
 save(strcat(dir_out, 'Valid_', dir0_out, '.mat'))
 
 % print figures
-exportgraphics(f1, strcat(dir_out, 'simul-vs-exp.jpg'),...
+exportgraphics(f1, strcat(dir_out, 'simul-vs-exp-v1.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
 exportgraphics(f2, strcat(dir_out, 'simul-param-rho-vs-dm.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
 exportgraphics(f3, strcat(dir_out, 'bayesfit-param-rho-and-Dm.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
 exportgraphics(f4, strcat(dir_out, 'simul-param-dpp-vs-da.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f5, strcat(dir_out, 'simul-vs-exp-v2.jpg'),...
     'BackgroundColor','none', 'Resolution', 300)
 
