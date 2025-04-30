@@ -8,7 +8,7 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'F:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
 fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
@@ -218,6 +218,8 @@ for i = 1 : n_shot
         y_fill_0 = y_fill;
         x_fill_0 = x_fill;
     else
+        plot(scale_spp * f_spp{1} + (i - 0.5), xi_spp{1}, 'Color',...
+            [clr2(1,:), 0.5], 'LineWidth', 0.5);
         fill(y_fill_0 + (i - 1), x_fill_0, clr2(1,:), ...
             'FaceAlpha', 0.1, ...
             'EdgeColor', 'none')
@@ -604,8 +606,6 @@ tl5_tot.Padding = 'compact';
 
 % generate colormap
 opts5.cc = 'on';
-opts5.cm = colormap("abyss");
-opts5.cm = flip(opts5.cm,1);
 opts5.clim = [0 1];  % enforce full range from 0 to 1
 opts5.ft = 0.9;
 
@@ -613,83 +613,104 @@ opts5.ft = 0.9;
 tl5 = cell(n_agg_f1, 3);
 row_ttl5 = cell(3,1);
 
-% % find triad position and title position
-% y_triad5 = linspace(y0_triad1(1), y0_triad1(2), n_agg_f1 + 1);
-% y_ttl5 = flip(linspace(y0_ttl1(1), y0_ttl1(2), n_agg_f1 + 1), 2);
-
 % render aggregates
 for i = 1 : n_agg_f1
 
-    % isometric view
-    tl5{i,1} = nexttile(tl5_tot, 3*i-2);
-    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
-        parsdata(ii1(i)).pp{jj1(i)}(:,4),...
-        parsdata(ii1(i)).pp{jj1(i)}(:,5),...
-        parsdata(ii1(i)).pp{jj1(i)}(:,2),...
-        parsdata(ii1(i)).spp{jj1(i)}, opts5);
+    % plot triad of axes for reference (+z is screening assessment dir.)
+    UTILS.MAKEAX(f5, [0.9, 0.9, 0.05, 0.05], '3d');
     hold on
-    % UTILS.MAKEAX(f1, [x_triad1(1), y_triad1(i), 0.08, 0.08], '3d'); % triad
     
+    % plot only observable primary particles
+    tl5{i,1} = nexttile(tl5_tot, 3*i-2);
     kk1 = parsdata(ii1(i)).spp{jj1(i)} < 0.5;
-    kk2 = parsdata(ii1(i)).spp{jj1(i)} >= 0.5;
-
-    tl5{i,2} = nexttile(tl5_tot, 3*i-1);
+    opts5.cm = UTILS.CUSTOMABYSSMAP('blue');
+    opts5.cm = flip(opts5.cm,1);
+    opts5.clim = [0, 0.5];
     UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(kk1,3),...
         parsdata(ii1(i)).pp{jj1(i)}(kk1,4),...
         parsdata(ii1(i)).pp{jj1(i)}(kk1,5),...
         parsdata(ii1(i)).pp{jj1(i)}(kk1,2),...
         parsdata(ii1(i)).spp{jj1(i)}(kk1), opts5);
+    if i == 1
+        title('Observable', 'interpreter', 'latex', 'FontSize', 14)
+    elseif i == 3
+        cb51 = colorbar(tl5{i,1}, 'southoutside');
+        cb51.FontSize = 11;
+        cb51.TickLabelInterpreter = 'latex';
+        cb51.Label.Interpreter = 'latex';
+        cb51.LineWidth = 1;
+        cb51.Ticks = [0, 0.25, 0.5];
+        cb51.TickLength = 0.05;        
+    end
 
+    % plot all primary particles
+    tl5{i,2} = nexttile(tl5_tot, 3*i-1);
+    opts5.cm = UTILS.CUSTOMABYSSMAP('purple');
+    opts5.cm = flip(opts5.cm,1);
+    opts5.clim = [0, 1];
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(:,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(:,2),...
+        parsdata(ii1(i)).spp{jj1(i)}, opts5);
+    if i == 1
+        title('All primary particles', 'interpreter', 'latex', 'FontSize', 14)
+    elseif i == 3
+        cb52 = colorbar(tl5{i,2}, 'southoutside');
+        cb52.Label.String = '$S_\mathrm{pp}^\mathrm{(i)}$ [-]';
+        cb52.FontSize = 11;
+        cb52.Label.FontSize = 16;
+        cb52.TickLabelInterpreter = 'latex';
+        cb52.Label.Interpreter = 'latex';
+        cb52.LineWidth = 1;        
+        cb52.Ticks = [0, 0.5, 1];
+        cb52.TickLength = 0.05;        
+    end
+    % adjust first tile's view
+    nexttile(tl5_tot, 3*i-2)
+    UTILS.SYNC3DVIEW(tl5{i,2}, tl5{i,1})
+    
+    % plot only shielded primary particles
     tl5{i,3} = nexttile(tl5_tot, 3*i);
-    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(kk2,3),...
-        parsdata(ii1(i)).pp{jj1(i)}(kk2,4),...
-        parsdata(ii1(i)).pp{jj1(i)}(kk2,5),...
-        parsdata(ii1(i)).pp{jj1(i)}(kk2,2),...
-        parsdata(ii1(i)).spp{jj1(i)}(kk2), opts5);
-
-    % % generate title text 
-    % row_ttl1{i} = strcat('$n_\mathrm{pp}$ =', {' '},...
-    %     num2str(parsdata(ii1(i)).npp(jj1(i))),...
-    %     ', $\sigma_\mathrm{pp}$ =', {' '},...
-    %     num2str(parsdata(ii1(i)).sigmapp(jj1(i)), '%.2f'),...
-    %     ', $n_\mathrm{hyb}$ =', {' '},...
-    %     num2str(parsdata(ii1(i)).n_hyb(jj1(i))));
-    % 
-    % % print aggregate structural information
-    % annotation('textbox', [x_ttl1(1), y_ttl1(i), x_ttl1(2), 0.03],...
-    %     'String', row_ttl1{i}, 'HorizontalAlignment', 'center',...
-    %     'VerticalAlignment', 'bottom', 'FontSize', 14, 'EdgeColor',...
-    %     'none', 'Interpreter', 'latex');
-    % 
+    kk3 = parsdata(ii1(i)).spp{jj1(i)} >= 0.5;
+    opts5.cm = UTILS.CUSTOMABYSSMAP('orange');
+    opts5.cm = flip(opts5.cm,1);
+    opts5.clim = [0.5, 1];
+    UTILS.PLOTPP_CONTINUOUS(parsdata(ii1(i)).pp{jj1(i)}(kk3,3),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk3,4),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk3,5),...
+        parsdata(ii1(i)).pp{jj1(i)}(kk3,2),...
+        parsdata(ii1(i)).spp{jj1(i)}(kk3), opts5);
+    UTILS.SYNC3DVIEW(tl5{i,2}, tl5{i,3})
+    if i == 1
+        title('Screened', 'interpreter', 'latex', 'FontSize', 14)
+    elseif i == 3
+        cb53 = colorbar(tl5{i,3}, 'southoutside');
+        cb53.FontSize = 11;
+        cb53.TickLabelInterpreter = 'latex';
+        cb53.Label.Interpreter = 'latex';
+        cb53.LineWidth = 1;        
+        cb53.Ticks = [0.5, 0.75, 1];
+        cb53.TickLength = 0.05;
+    end
+    
 end
 
-% % generate colorbar showing shielding values
-% cb1 = colorbar(tl1{1,1}, 'eastoutside');
-% cb1.Layout.Tile = 'south';
-% cb1.Label.String = '$S_\mathrm{pp}^\mathrm{(i)}$ [-]';
-% cb1.FontSize = 12;
-% cb1.Label.FontSize = 18;
-% cb1.TickLabelInterpreter = 'latex';
-% cb1.Label.Interpreter = 'latex';
-% cb1.LineWidth = 1;
-% 
-% 
-
 %% save plots and workspace %%
-% 
-% % make a directory to save outputs
-% dir0_out = datestr(datetime('now'));
-% dir0_out = regexprep(dir0_out, ':', '-');
-% dir0_out = regexprep(dir0_out, ' ', '_');
-% dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
-% if ~isfolder(dir_out)
-%     mkdir(dir_out); % if it doesn't exist, create the directory
-% end
-% 
-% % save worksapce
+
+% make a directory to save outputs
+dir0_out = datestr(datetime('now'));
+dir0_out = regexprep(dir0_out, ':', '-');
+dir0_out = regexprep(dir0_out, ' ', '_');
+dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
+if ~isfolder(dir_out)
+    mkdir(dir_out); % if it doesn't exist, create the directory
+end
+
+% save worksapce
 % save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
-% 
-% % print figures
+
+% print figures
 % exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
 %     'BackgroundColor','none', 'Resolution', 300)
 % exportgraphics(f2, strcat(dir_out, 'dist-shield.jpg'),...
@@ -698,3 +719,5 @@ end
 %     'BackgroundColor','none', 'Resolution', 300)
 % exportgraphics(f4, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
 %     'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f5, strcat(dir_out, 'render-shield-v2.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
