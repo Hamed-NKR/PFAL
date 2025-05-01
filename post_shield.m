@@ -8,7 +8,7 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'F:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
 fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
@@ -338,8 +338,9 @@ dpp_2d = cell(n_shot, n_spp_star, 2);
 n_dpp_2d = zeros(n_shot, n_spp_star);
 
 % ensemble geometric mean of primary particle diameter in 3d 
-dpp_ens = cat(1, parsdata(1).pp{:});
-dpp_ens = geomean(dpp_ens(:,2));
+dpps_ens = cat(1, parsdata(1).pp{:});
+dpp_ens = geomean(dpps_ens(:,2));
+sigmapp_ens = UTILS.GEOSTD(dpps_ens(:,2));
 
 % allocate boxplots
 bp3 = cell(n_shot, n_spp_star, 2);
@@ -692,75 +693,127 @@ end
 
 % initialize figure
 f6 = figure(6);
-f6.Position = [300, 100, 500, 600];
+f6.Position = [300, 100, 500, 650];
 set(f6, 'color', 'white');
 
-
 % allocate space for plot lines
-plt6 = cell(n_shot, 1);
+plt6 = cell(n_shot+2, 1);
+
+% plot ensemble geometric mean and standard deviation
+plt6{end-1} = plot(1e9 * [dpp_ens dpp_ens], [0.6 1.4], 'Color',...
+    [0.25 0.25 0.25], 'LineStyle', ':', 'LineWidth', 2);
+hold on
+fill(1e9*[dpp_ens/sigmapp_ens, dpp_ens/sigmapp_ens, dpp_ens*sigmapp_ens,...
+    dpp_ens*sigmapp_ens], [0.6 1.4 1.4 0.6], [0 0 0],...
+    'FaceAlpha', 0.1, 'EdgeColor', 'none')
+fill(1e9*[dpp_ens/sigmapp_ens^2, dpp_ens/sigmapp_ens^2,...
+    dpp_ens*sigmapp_ens^2, dpp_ens*sigmapp_ens^2], [0.6 1.4 1.4 0.6],...
+    [0 0 0], 'FaceAlpha', 0.1, 'EdgeColor', 'none')
+plt6{end} = plot([5 55], [1 1], 'Color', [0 0 0],...
+    'LineStyle', '-', 'LineWidth', 0.5); % plot 1:1 line
 
 for i = 1 : n_shot
 
-    % Determine log-spaced x-axis over the combined range
-    xq1 = logspace(log10(1e9 * min([dpp_2d{i,1,1}; dpp_2d{i,3,1}])),...
-        log10(1e9 * max([dpp_2d{i,1,1}; dpp_2d{i,3,1}])), 1000);
+    % determine log-spaced x-axis over the combined range
+    xq = logspace(log10(1e9 * 0.9 * min([dpp_2d{i,1,1}; dpp_2d{i,3,1}])),...
+        log10(1e9 * 1.1 * max([dpp_2d{i,1,1}; dpp_2d{i,3,1}])), 200);
     
-    % Estimate KDEs using log-spaced support
-    [f1_all, ~] = ksdensity(1e9 * dpp_2d{i,1,1}, xq1, 'Function', 'pdf');
-    [f1_obs, ~] = ksdensity(1e9 * dpp_2d{i,3,1}, xq1, 'Function', 'pdf');
+    % estimate kernel density estimates using log-spaced support
+    [f_all, ~] = ksdensity(1e9 * dpp_2d{i,1,1}, xq, 'Function', 'pdf');
+    [f_obs, ~] = ksdensity(1e9 * dpp_2d{i,3,1}, xq, 'Function', 'pdf');
     
-    % Compute bias curve
-    bias_curve_1 = f1_obs ./ f1_all;
-    
-    % Plot
-    loglog(xq1, bias_curve_1, 'Color', clr2(i, :), 'LineWidth', 2);  
-    hold on
-
-    nexttile(2) % bias ensemble of primary particles
-
-    % Determine log-spaced x-axis over the combined range
-    xq2 = logspace(log10(1e9 * min([dpp_2d{i,1,2}; dpp_2d{i,3,2}])),...
-        log10(1e9 * max([dpp_2d{i,1,2}; dpp_2d{i,3,2}])), 100);
-    
-    % Estimate KDEs using log-spaced support
-    [f2_all, ~] = ksdensity(1e9 * dpp_2d{i,1,2}, xq2, 'Function', 'pdf');
-    [f2_obs, ~] = ksdensity(1e9 * dpp_2d{i,3,2}, xq2, 'Function', 'pdf');
-    
-    % Compute bias curve
-    bias_curve_2 = f2_obs ./ f2_all;
-    
-    % Plot
-    loglog(xq2, bias_curve_2, 'Color', clr2(i, :), 'LineWidth', 2);  
-    hold on
+    % compute and plot bias curve (ratio of estimates)
+    bias_curve = f_obs ./ f_all;
+    plt6{i} = plot(xq, bias_curve, 'Color', clr2(i, :), 'LineWidth', 2);  
 
 end
 
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02], 'xScale', 'log')
+xlabel('$d_\mathrm{pp}^\mathrm{(i)^{(3D)}}$ [nm]', 'interpreter', 'latex',...
+    'FontSize', 18)
+ylabel('$d_\mathrm{pp}^\mathrm{(i)^{(2D)}} / d_\mathrm{pp}^\mathrm{(i)^{(3D)}}$',...
+    'interpreter', 'latex', 'FontSize', 18)
+xlim([7 50])
+ylim([0.6 1.4])
+legend(cat(1, plt6{:}), cat(1,legtxt2,...
+    {'$\langle{d_\mathrm{pp}^\mathrm{(i)^{(3D)}}}\rangle$ [-]'},...
+    {'1:1 line'}), 'interpreter', 'latex', 'FontSize', 14,...
+    'NumColumns', 2, 'Location', 'southoutside')
 
 %% a better representation of figure 4 in the form of parity plots %%
 
 % initialize figure
 f7 = figure(7);
-f7.Position = [350, 150, 500, 650];
+f7.Position = [350, 150, 1000, 500];
 set(f7, 'color', 'white')
+
+% initialize layout
+tl7 = tiledlayout(1, 2);
+tl7.TileSpacing = 'compact';
+tl7.Padding = 'compact';
 
 plt7 = cell(n_shot+1, 1); % initialize placholders for plots
 
-% plot 1:1 line - x axis is actual mean primary particle diameter and...
+bp7 = cell(n_shot, 1); % allocate space for boxplots in...
+    % ...second tile
+
+nexttile(1) % x axis is actual mean primary particle diameter and...
     % ...y axis is calculated mean primary particle diameter...
     % ...considering screening
 dpp0_actual = linspace(5, bounds_dpp_f4(2), 35);
 dpp0_screen = dpp0_actual;
-plt7{end} = plot(dpp0_screen, dpp0_actual, 'Color', [0.3 0.3 0.3],...
-    'LineStyle', '--', 'LineWidth', 0.5);
+plt7{end} = plot(dpp0_screen, dpp0_actual, 'Color', [0.5 0.5 0.5],...
+    'LineStyle', '-', 'LineWidth', 0.5); % plot 1:1 line
 hold on
 
-% plot screened vs actual mean primary particle diameter within aggregates
 for i = 1 : n_shot
-   plt7{i} = scatter(1e9 * dpp_2d{i,1,2}, 1e9 * dpp_2d{i,i_spp_star,2},...
+    
+    nexttile(1)
+    % plot screened vs actual mean primary particle diameter witin...
+        % ...aggregates
+    plt7{i} = scatter(1e9 * dpp_2d{i,1,2}, 1e9 * dpp_2d{i,i_spp_star,2},...
         ms2(i), clr2(i,:), mt2{i}, 'LineWidth', 1);
+
+    nexttile(2)
+
+    % box-whisker distributions showing ratio of observed to actual...
+        % ...mean primary particle diameter within individual aggregates
+    bp7{i,1} = boxplot(dpp_2d{i,3,2} ./ dpp_2d{i,1,2}, 'Positions', i,...
+        'Notch', 'on', 'Symbol', 'o', 'Widths', 0.5);
+    hold on
+    
+    % Find the box object
+    boxObj = findobj(bp7{i,1}, 'Tag', 'Box');
+    
+    % fill inside the box
+    patch(get(boxObj, 'XData'), get(boxObj, 'YData'), clr2(i, :),...
+        'FaceAlpha', 0.3, 'EdgeColor', clr2(i, :), 'LineWidth', 1);
+    
+    % adjust the median line
+    boxMed = findobj(bp7{i,1}, 'Tag', 'Median');
+    set(boxMed, 'Color', clr2(i, :), 'LineWidth', 2);
+    
+    % adjust outlier markers
+    outliers = findobj(bp7{i,1}, 'Tag', 'Outliers');
+    outliers.MarkerEdgeColor = clr2(i, :);
+    outliers.MarkerSize = 3;
+    
+    % adjust whiskers
+    upwhisker = findobj(bp7{i,1},'type', 'line', 'tag', 'Upper Whisker');
+    set(upwhisker, 'linestyle', '-');
+    lowwhisker= findobj(bp7{i,1}, 'type', 'line','tag', 'Lower Whisker');
+    set(lowwhisker, 'linestyle', '-');
+    
+    xticks(1 : n_shot)  % specify tick positions for horizontal axis
+    xticklabels(xlbl2)  % assign labels to ticks
+    
 end
 
 % set plot appearances
+
+nexttile(1)
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02])
@@ -768,32 +821,47 @@ xlabel('$d_\mathrm{pp}^\mathrm{(3D)}$ [nm]', 'interpreter', 'latex',...
     'FontSize', 18)
 ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter', 'latex',...
     'FontSize', 18)
-lgd6 = legend(cat(1, plt7{:}), cat(1,legtxt2, {'1:1 line'}),...
-    'interpreter', 'latex', 'FontSize', 14, 'NumColumns', 2,...
-    'Location', 'southoutside');
+xlim([9 29])
+ylim([9 29])
+legend(cat(1, plt7{:}), cat(1,legtxt2, {'1:1 line'}),...
+    'interpreter', 'latex', 'FontSize', 14, 'Location', 'southeast')
+
+nexttile(2)
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02])
+xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
+    'latex', 'FontSize', 18) % label for horizontal axis
+ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
+    'interpreter', 'latex', 'FontSize', 18)
+
 
 %% save plots and workspace %%
 
-% % make a directory to save outputs
-% dir0_out = datestr(datetime('now'));
-% dir0_out = regexprep(dir0_out, ':', '-');
-% dir0_out = regexprep(dir0_out, ' ', '_');
-% dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
-% if ~isfolder(dir_out)
-%     mkdir(dir_out); % if it doesn't exist, create the directory
-% end
-% 
-% % save worksapce
-% save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
-% 
-% % print figures
-% exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
-%     'BackgroundColor','none', 'Resolution', 300)
-% exportgraphics(f2, strcat(dir_out, 'dist-shield.jpg'),...
-%     'BackgroundColor','none', 'Resolution', 300)
-% exportgraphics(f3, strcat(dir_out, 'dpp-bias.jpg'),...
-%     'BackgroundColor','none', 'Resolution', 300)
-% exportgraphics(f4, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
-%     'BackgroundColor','none', 'Resolution', 300)
-% exportgraphics(f5, strcat(dir_out, 'render-shield-v2.jpg'),...
-%     'BackgroundColor','none', 'Resolution', 300)
+% make a directory to save outputs
+dir0_out = datestr(datetime('now'));
+dir0_out = regexprep(dir0_out, ':', '-');
+dir0_out = regexprep(dir0_out, ' ', '_');
+dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
+if ~isfolder(dir_out)
+    mkdir(dir_out); % if it doesn't exist, create the directory
+end
+
+% save worksapce
+save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
+
+% print figures
+exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f2, strcat(dir_out, 'dist-shield.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f3, strcat(dir_out, 'dpp-bias.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f4, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f5, strcat(dir_out, 'render-shield-v2.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f6, strcat(dir_out, 'dpp-ens-bias.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
+exportgraphics(f7, strcat(dir_out, 'dpp-mean-bias.jpg'),...
+    'BackgroundColor','none', 'Resolution', 300)
