@@ -8,7 +8,7 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fdir_in = 'F:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
 fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
@@ -586,15 +586,7 @@ lgd4 = legend(cat(1, plt4{:}), cat(1,legtxt2,...
     'interpreter', 'latex', 'FontSize', 14, 'NumColumns', 3);
 lgd4.Layout.Tile = 'south';
 
-%% a more detailed version of rendering in figure 1 (for thesis) %%
-
-% % display selected properties
-% for i = 1 : n_agg_f1
-%     fprintf('Group %d: npp = %d, sigmapp = %.4f, n_hyb = %d\n', i, ...
-%         parsdata(ii1(i)).npp(jj1(i)), ...
-%         parsdata(ii1(i)).sigmapp(jj1(i)), ...
-%         parsdata(ii1(i)).n_hyb(jj1(i)));
-% end
+%% a more detailed version of rendering in figure 1 %%
 
 % initialize figure
 f5 = figure(5);
@@ -696,21 +688,105 @@ for i = 1 : n_agg_f1
     
 end
 
-%% save plots and workspace %%
+%% an improved differential-form representation of figure 3 %%
 
-% make a directory to save outputs
-dir0_out = datestr(datetime('now'));
-dir0_out = regexprep(dir0_out, ':', '-');
-dir0_out = regexprep(dir0_out, ' ', '_');
-dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
-if ~isfolder(dir_out)
-    mkdir(dir_out); % if it doesn't exist, create the directory
+% initialize figure
+f6 = figure(6);
+f6.Position = [300, 100, 500, 600];
+set(f6, 'color', 'white');
+
+
+% allocate space for plot lines
+plt6 = cell(n_shot, 1);
+
+for i = 1 : n_shot
+
+    % Determine log-spaced x-axis over the combined range
+    xq1 = logspace(log10(1e9 * min([dpp_2d{i,1,1}; dpp_2d{i,3,1}])),...
+        log10(1e9 * max([dpp_2d{i,1,1}; dpp_2d{i,3,1}])), 1000);
+    
+    % Estimate KDEs using log-spaced support
+    [f1_all, ~] = ksdensity(1e9 * dpp_2d{i,1,1}, xq1, 'Function', 'pdf');
+    [f1_obs, ~] = ksdensity(1e9 * dpp_2d{i,3,1}, xq1, 'Function', 'pdf');
+    
+    % Compute bias curve
+    bias_curve_1 = f1_obs ./ f1_all;
+    
+    % Plot
+    loglog(xq1, bias_curve_1, 'Color', clr2(i, :), 'LineWidth', 2);  
+    hold on
+
+    nexttile(2) % bias ensemble of primary particles
+
+    % Determine log-spaced x-axis over the combined range
+    xq2 = logspace(log10(1e9 * min([dpp_2d{i,1,2}; dpp_2d{i,3,2}])),...
+        log10(1e9 * max([dpp_2d{i,1,2}; dpp_2d{i,3,2}])), 100);
+    
+    % Estimate KDEs using log-spaced support
+    [f2_all, ~] = ksdensity(1e9 * dpp_2d{i,1,2}, xq2, 'Function', 'pdf');
+    [f2_obs, ~] = ksdensity(1e9 * dpp_2d{i,3,2}, xq2, 'Function', 'pdf');
+    
+    % Compute bias curve
+    bias_curve_2 = f2_obs ./ f2_all;
+    
+    % Plot
+    loglog(xq2, bias_curve_2, 'Color', clr2(i, :), 'LineWidth', 2);  
+    hold on
+
 end
 
-% save worksapce
-% save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
 
-% print figures
+%% a better representation of figure 4 in the form of parity plots %%
+
+% initialize figure
+f7 = figure(7);
+f7.Position = [350, 150, 500, 650];
+set(f7, 'color', 'white')
+
+plt7 = cell(n_shot+1, 1); % initialize placholders for plots
+
+% plot 1:1 line - x axis is actual mean primary particle diameter and...
+    % ...y axis is calculated mean primary particle diameter...
+    % ...considering screening
+dpp0_actual = linspace(5, bounds_dpp_f4(2), 35);
+dpp0_screen = dpp0_actual;
+plt7{end} = plot(dpp0_screen, dpp0_actual, 'Color', [0.3 0.3 0.3],...
+    'LineStyle', '--', 'LineWidth', 0.5);
+hold on
+
+% plot screened vs actual mean primary particle diameter within aggregates
+for i = 1 : n_shot
+   plt7{i} = scatter(1e9 * dpp_2d{i,1,2}, 1e9 * dpp_2d{i,i_spp_star,2},...
+        ms2(i), clr2(i,:), mt2{i}, 'LineWidth', 1);
+end
+
+% set plot appearances
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02])
+xlabel('$d_\mathrm{pp}^\mathrm{(3D)}$ [nm]', 'interpreter', 'latex',...
+    'FontSize', 18)
+ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter', 'latex',...
+    'FontSize', 18)
+lgd6 = legend(cat(1, plt7{:}), cat(1,legtxt2, {'1:1 line'}),...
+    'interpreter', 'latex', 'FontSize', 14, 'NumColumns', 2,...
+    'Location', 'southoutside');
+
+%% save plots and workspace %%
+
+% % make a directory to save outputs
+% dir0_out = datestr(datetime('now'));
+% dir0_out = regexprep(dir0_out, ':', '-');
+% dir0_out = regexprep(dir0_out, ' ', '_');
+% dir_out = strcat('outputs\', 'PostShield_', dir0_out, '\');
+% if ~isfolder(dir_out)
+%     mkdir(dir_out); % if it doesn't exist, create the directory
+% end
+% 
+% % save worksapce
+% save(strcat(dir_out, 'PostShield_', dir0_out, '.mat'))
+% 
+% % print figures
 % exportgraphics(f1, strcat(dir_out, 'render-shield.jpg'),...
 %     'BackgroundColor','none', 'Resolution', 300)
 % exportgraphics(f2, strcat(dir_out, 'dist-shield.jpg'),...
@@ -719,5 +795,5 @@ end
 %     'BackgroundColor','none', 'Resolution', 300)
 % exportgraphics(f4, strcat(dir_out, 'dpp-vs-da-bias.jpg'),...
 %     'BackgroundColor','none', 'Resolution', 300)
-exportgraphics(f5, strcat(dir_out, 'render-shield-v2.jpg'),...
-    'BackgroundColor','none', 'Resolution', 300)
+% exportgraphics(f5, strcat(dir_out, 'render-shield-v2.jpg'),...
+%     'BackgroundColor','none', 'Resolution', 300)
