@@ -6,13 +6,13 @@ close all
 %% initialization %%
 
 % address of simulation data to be imported
-fdir_simul_13_scat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-40-55_LD2-25NOV24';
+fdir_simul_13_scat = 'E:\DLCA2\outputs\postLD2-28-Mar-2025_18-40-55_LD2-25NOV24';
 fname_simul_13_scat = 'Post_LD2-25NOV24';
-fdir_simul_13_flat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-36-43_LD2_27-Nov-2024_04-21-58_Final';
+fdir_simul_13_flat = 'E:\DLCA2\outputs\postLD2-28-Mar-2025_18-36-43_LD2_27-Nov-2024_04-21-58_Final';
 fname_simul_13_flat = 'Post_LD2_27-Nov-2024_04-21-58_Final';
-fdir_simul_10_scat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-57-18_LD2-25-Nov-2024_19-37-48_Final';
+fdir_simul_10_scat = 'E:\DLCA2\outputs\postLD2-28-Mar-2025_18-57-18_LD2-25-Nov-2024_19-37-48_Final';
 fname_simul_10_scat = 'Post_LD2-25-Nov-2024_19-37-48_Final';
-fdir_simul_10_flat = 'F:\DLCA2\outputs\postLD2-28-Mar-2025_18-59-48_LD2-26-Nov-2024_23-56-35_Final';
+fdir_simul_10_flat = 'E:\DLCA2\outputs\postLD2-28-Mar-2025_18-59-48_LD2-26-Nov-2024_23-56-35_Final';
 fname_simul_10_flat = 'Post_LD2-26-Nov-2024_23-56-35_Final';
 
 % variables of interest in the simulation data
@@ -21,7 +21,7 @@ varnames_simul = {'parsdata', 'pars_flt', 'bayesfit'};
 ii0 = [1,3,4]; % data group indices in simulation data to be plotted
 
 % address of experimental data to be improted (for validation)
-fdir_exp = 'F:\Experiment\Effective-Density-Compiled';
+fdir_exp = 'E:\Experiment\Effective-Density-Compiled';
 fname_exp = 'Effective-Density-Compiled_17-Mar-2025_05-00-44';
 
 bayesresol = 500; % number of increment for bayesian fit 
@@ -269,10 +269,10 @@ bounds_rho_f2 = [0.9 * min([min(cat(1, parsdata_13_scat.rho_eff)),...
     max(cat(1, parsdata_10_flat.rho_eff))])];
 
 % make titles for subplots
-titxt2 = {'$(\gamma_\mathrm{pp})_1$ = 1.3 -- bivariate',...
-    '$(\gamma_\mathrm{pp})_1$ = 1.3 -- univariate',...
-    '$(\gamma_\mathrm{pp})_1$ = 1.0 -- bivariate',...
-    '$(\gamma_\mathrm{pp})_1$ = 1.0 -- univariate'};
+titxt2 = {'$(\gamma_\mathrm{pp})_1$ = 1.3 -- High dispersion',...
+    '$(\gamma_\mathrm{pp})_1$ = 1.3 -- Low dispersion',...
+    '$(\gamma_\mathrm{pp})_1$ = 1.0 -- High dispersion',...
+    '$(\gamma_\mathrm{pp})_1$ = 1.0 -- Low dispersion'};
 
 for i = 1 : 4
 
@@ -384,7 +384,7 @@ fill([bayesfit_13_scat.xfit; flipud(bayesfit_13_scat.xfit)],...
     [bayesfit_13_scat.bounds_yfit(:,1);...
     flipud(bayesfit_13_scat.bounds_yfit(:,2))],...
     hex2rgb('#C96868'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
-legtxt3{1} = '$(\gamma_\mathrm{pp})_1$ = 1.3, bivariate';
+legtxt3{1} = '$(\gamma_\mathrm{pp})_1$ = 1.3, High dispersion';
 
 % aggregates with initial polydispersity, but without scatter around...
     % ...universal correlation
@@ -394,7 +394,7 @@ fill([bayesfit_13_flat.xfit; flipud(bayesfit_13_flat.xfit)],...
     [bayesfit_13_flat.bounds_yfit(:,1);...
     flipud(bayesfit_13_flat.bounds_yfit(:,2))],...
     hex2rgb('#FCDC94'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
-legtxt3{2} = '$(\gamma_\mathrm{pp})_1$ = 1.3, univariate';
+legtxt3{2} = '$(\gamma_\mathrm{pp})_1$ = 1.3, Low dispersion';
 
 % aggregates without initial polydispersity, but with scatter around...
     % ...universal correlation
@@ -404,7 +404,7 @@ fill([bayesfit_10_scat.xfit; flipud(bayesfit_10_scat.xfit)],...
     [bayesfit_10_scat.bounds_yfit(:,1);...
     flipud(bayesfit_10_scat.bounds_yfit(:,2))],...
     hex2rgb('#7286D3'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
-legtxt3{3} = '$(\gamma_\mathrm{pp})_1$ = 1.0, bivariate';
+legtxt3{3} = '$(\gamma_\mathrm{pp})_1$ = 1.0, High dispersion';
 
 % aggregates without initial polydispersity and without scatter around...
     % ...universal correlation
@@ -414,7 +414,7 @@ fill([bayesfit_10_flat.xfit; flipud(bayesfit_10_flat.xfit)],...
     [bayesfit_10_flat.bounds_yfit(:,1);...
     flipud(bayesfit_10_flat.bounds_yfit(:,2))],...
     hex2rgb('#55AD9B'), 'EdgeColor', 'none', 'FaceAlpha', 0.3);
-legtxt3{4} = '$(\gamma_\mathrm{pp})_1$ = 1.0, univariate';
+legtxt3{4} = '$(\gamma_\mathrm{pp})_1$ = 1.0, Low dispersion';
 
 % set plot appearances
 box on

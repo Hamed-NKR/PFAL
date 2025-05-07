@@ -8,7 +8,7 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'F:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
 fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
@@ -693,34 +693,81 @@ end
 
 % initialize figure
 f6 = figure(6);
-f6.Position = [300, 100, 500, 650];
+f6.Position = [300, 100, 1200, 500];
 set(f6, 'color', 'white');
 
+% initialize layout
+tl6 = tiledlayout(1, 2);
+tl6.TileSpacing = 'loose';
+tl6.Padding = 'compact';
+
 % allocate space for plot lines
-plt6 = cell(n_shot+3, 1);
+plt61 = cell(n_shot+1, 1);
+plt62 = cell(n_shot+3, 1);
+
+nexttile(1)
+
+% ensemble mean of primary particle diameter
+plt61{end} = plot(linspace(0, n_shot+1, 100),...
+    1e9 * repmat(dpp_ens,1,100), 'Color', [0, 0, 0],...
+    'LineWidth', 2, 'LineStyle', ':');
+hold on
+
+nexttile(2)
 
 % plot ensemble geometric mean and standard deviation
-plt6{end-2} = plot(1e9 * [dpp_ens dpp_ens], [0.6 1.4], 'Color',...
+plt62{end-2} = plot(1e9 * [dpp_ens dpp_ens], [0.6 1.4], 'Color',...
     [0.25 0.25 0.25], 'LineStyle', ':', 'LineWidth', 2);
 hold on
 % shades showing confidence intervals (one and two standard deviations)
 fill(1e9*[dpp_ens/sigmapp_ens, dpp_ens/sigmapp_ens, dpp_ens*sigmapp_ens,...
     dpp_ens*sigmapp_ens], [0.6 1.4 1.4 0.6], [0 0 0],...
-    'FaceAlpha', 0.1, 'EdgeColor', 'none')
+    'FaceAlpha', 0.05, 'EdgeColor', 'none')
 fill(1e9*[dpp_ens/sigmapp_ens^2, dpp_ens/sigmapp_ens^2,...
     dpp_ens*sigmapp_ens^2, dpp_ens*sigmapp_ens^2], [0.6 1.4 1.4 0.6],...
-    [0 0 0], 'FaceAlpha', 0.1, 'EdgeColor', 'none')
+    [0 0 0], 'FaceAlpha', 0.05, 'EdgeColor', 'none')
 
 % ensemble geometric mean for 2d biased highest agglomeration case
 dpp_ens_maxbias = geomean(dpp_2d{n_shot,3,1});
-plt6{end-1} = plot(1e9 * [dpp_ens_maxbias dpp_ens_maxbias], [0.6 1.4],...
-    'Color', clr2(n_shot, :), 'LineStyle', '--', 'LineWidth', 1);
-
-plt6{end} = plot([5 55], [1 1], 'Color', [0 0 0],...
+plt62{end-1} = plot(1e9 * [dpp_ens_maxbias dpp_ens_maxbias], [0.6 1.4],...
+    'Color', clr2(n_shot, :), 'LineStyle', ':', 'LineWidth', 2);
+plt62{end} = plot([5 55], [1 1], 'Color', [0 0 0],...
     'LineStyle', '-', 'LineWidth', 0.5); % plot 1:1 line
 
 for i = 1 : n_shot
 
+    nexttile(1)
+
+    % plot ensemble distribution of primary particle diameter
+    plt61{i} = boxplot(1e9 * dpp_2d{i,3,1}, 'Positions', i,...
+        'Notch', 'on', 'Symbol', 'o', 'Widths', 0.5);
+
+    % Find the box object
+    boxObj = findobj(plt61{i}, 'Tag', 'Box');
+
+    % fill inside the box
+    patch(get(boxObj, 'XData'), get(boxObj, 'YData'), clr2(i, :),...
+        'FaceAlpha', 0.3, 'EdgeColor', clr2(i, :), 'LineWidth', 1);
+
+    % adjust the median line
+    boxMed = findobj(plt61{i}, 'Tag', 'Median');
+    set(boxMed, 'Color', clr2(i, :), 'LineWidth', 2);
+
+    % adjust outlier markers
+    outliers = findobj(plt61{i}, 'Tag', 'Outliers');
+    outliers.MarkerEdgeColor = clr2(i, :);
+    outliers.MarkerSize = 3;
+
+    % adjust whiskers
+    upwhisker = findobj(plt61{i},'type', 'line', 'tag', 'Upper Whisker');
+    set(upwhisker, 'linestyle', '-');
+    lowwhisker= findobj(plt61{i}, 'type', 'line','tag', 'Lower Whisker');
+    set(lowwhisker, 'linestyle', '-');
+
+    xticks(1 : n_shot)  % specify tick positions for horizontal axis
+    xticklabels(xlbl2)  % assign labels to ticks
+    
+    nexttile(2)
     % determine log-spaced x-axis over the combined range
     xq = logspace(log10(1e9 * 0.9 * min([dpp_2d{i,1,1}; dpp_2d{i,3,1}])),...
         log10(1e9 * 1.1 * max([dpp_2d{i,1,1}; dpp_2d{i,3,1}])), 200);
@@ -731,30 +778,47 @@ for i = 1 : n_shot
     
     % compute and plot bias curve (ratio of estimates)
     bias_curve = f_obs ./ f_all;
-    plt6{i} = plot(xq, bias_curve, 'Color', clr2(i, :), 'LineWidth', 2);  
+    plt62{i} = plot(xq, bias_curve, 'Color', clr2(i, :), 'LineWidth', 2); 
 
 end
 
+% set plot appearances
+
+nexttile(1)
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+    'TickLength', [0.02 0.02], 'YScale', 'log')
+xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
+    'latex', 'FontSize', 18)
+ylabel('$d_\mathrm{pp}^{(i)}$ [nm]', 'interpreter', 'latex',...
+    'FontSize', 18)
+xlim([0.5 5.5])
+ylim([4.5 70])
+yticks(cat(2,5:10,linspace(20,60,5)))
+% legend(plt61{end}, '$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle$',...
+%     'interpreter', 'latex', 'FontSize', 14, 'location', 'southeast')
+
+nexttile(2)
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'xScale', 'log')
-xlabel('$d_\mathrm{pp}^\mathrm{(i)^{(3D)}}$ [nm]', 'interpreter', 'latex',...
+xlabel('$d_\mathrm{pp}^\mathrm{(i)}$ [nm]', 'interpreter', 'latex',...
     'FontSize', 18)
 ylabel('$f_{d_\mathrm{pp}^\mathrm{(i)}}^\mathrm{(2D)} / f_{d_\mathrm{pp}^\mathrm{(i)}}^\mathrm{(3D)}$',...
     'interpreter', 'latex', 'FontSize', 18)
 xlim([7 50])
 ylim([0.6 1.4])
-legend(cat(1, plt6{:}), cat(1,legtxt2,...
-    {'$\langle{d_\mathrm{pp}^\mathrm{(i)^{(3D)}}}\rangle$'},...
-    {'$\langle{d_\mathrm{pp}^\mathrm{(i)^{(2D)}}}\rangle_{n_\mathrm{agg}/(n_\mathrm{agg})_2=0.01}$'},...
+legend(cat(1, plt62{:}), cat(1,legtxt2,...
+    {'$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle^\mathrm{(3D)}$'},...
+    {'$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle^\mathrm{(2D)}_{n_\mathrm{agg}/(n_\mathrm{agg})_2=0.01}$'},...
     {'1:1 line'}), 'interpreter', 'latex', 'FontSize', 14,...
-    'NumColumns', 2, 'Location', 'southoutside')
+    'Location', 'eastoutside')
 
 %% a better representation of figure 4 in the form of parity plots %%
 
 % initialize figure
 f7 = figure(7);
-f7.Position = [350, 150, 1000, 500];
+f7.Position = [350, 150, 1000, 550];
 set(f7, 'color', 'white')
 
 % initialize layout
@@ -764,15 +828,14 @@ tl7.Padding = 'compact';
 
 plt7 = cell(n_shot+1, 1); % initialize placholders for plots
 
-bp7 = cell(n_shot, 1); % allocate space for boxplots in...
-    % ...second tile
+bp7 = cell(n_shot, 1); % allocate space for boxplots in second tile
 
 nexttile(1) % x axis is actual mean primary particle diameter and...
     % ...y axis is calculated mean primary particle diameter...
     % ...considering screening
-dpp0_actual = linspace(5, bounds_dpp_f4(2), 35);
-dpp0_screen = dpp0_actual;
-plt7{end} = plot(dpp0_screen, dpp0_actual, 'Color', [0.5 0.5 0.5],...
+da0_f7 = linspace(1, 2e3, 1e2);
+r_dpp0_f7 = ones(1, 1e2);
+plt7{end} = plot(da0_f7, r_dpp0_f7, 'Color', [0 0 0],...
     'LineStyle', '-', 'LineWidth', 0.5); % plot 1:1 line
 hold on
 
@@ -781,8 +844,8 @@ for i = 1 : n_shot
     nexttile(1)
     % plot screened vs actual mean primary particle diameter witin...
         % ...aggregates
-    plt7{i} = scatter(1e9 * dpp_2d{i,1,2}, 1e9 * dpp_2d{i,i_spp_star,2},...
-        ms2(i), clr2(i,:), mt2{i}, 'LineWidth', 1);
+    plt7{i} = scatter(1e9 * parsdata(i).da, dpp_2d{i,3,2}./...
+        dpp_2d{i,1,2}, ms2(i), clr2(i,:), mt2{i}, 'LineWidth', 1);
 
     nexttile(2)
 
@@ -824,15 +887,15 @@ end
 nexttile(1)
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
-    'TickLength', [0.02 0.02])
-xlabel('$d_\mathrm{pp}^\mathrm{(3D)}$ [nm]', 'interpreter', 'latex',...
-    'FontSize', 18)
-ylabel('$d_\mathrm{pp}^\mathrm{(2D)}$ [nm]', 'interpreter', 'latex',...
-    'FontSize', 18)
-xlim([9 29])
-ylim([9 29])
+    'TickLength', [0.02 0.02], 'xScale', 'log')
+xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
+    'interpreter', 'latex', 'FontSize', 18)
+xlim([18 1500])
+ylim([0.96 1.16])
 legend(cat(1, plt7{:}), cat(1,legtxt2, {'1:1 line'}),...
-    'interpreter', 'latex', 'FontSize', 14, 'Location', 'southeast')
+    'interpreter', 'latex', 'FontSize', 14, 'Location', 'southoutside',...
+    'NumColumns', 2)
 
 nexttile(2)
 box on
@@ -840,8 +903,6 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
     'latex', 'FontSize', 18) % label for horizontal axis
-ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
-    'interpreter', 'latex', 'FontSize', 18)
 
 
 %% save plots and workspace %%
