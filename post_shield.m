@@ -8,7 +8,7 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'E:\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
+fdir_in = 'D:\Hamed\CND\PhD\Publication\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
 fname_in = 'Shield_11-Apr-2025_00-35-50';
 
 varnames = {'parsdata'}; % varaiables to be imported
@@ -362,8 +362,9 @@ for i = 1 : n_shot
         
     for j = 1 : n_spp_star
         
-        % allocate for individual aggregates
+        % allocate GM and GSD of observed dpp for individual aggregates
         dpp_2d{i,j,2} = zeros(nagg(i), 1);
+        sigmapp_2d{i,j} = zeros(nagg(i), 1); %#ok<SAGROW>
         
         % allocate shielding factor decision variable for each snapshot
         kk{i,j} = cell(nagg(i),1);
@@ -373,6 +374,7 @@ for i = 1 : n_shot
         for k = 1 : nagg(i)
             kk{i,j}{k} = parsdata(i).spp{k} <= spp_star(j);
             dpp_2d{i,j,2}(k) = geomean(parsdata(i).pp{k}(kk{i,j}{k},2));
+            sigmapp_2d{i,j}(k) = UTILS.GEOSTD(parsdata(i).pp{k}(kk{i,j}{k},2));
         end
     
         % compile primary particles acrosss all aggregates
@@ -693,12 +695,12 @@ end
 
 % initialize figure
 f6 = figure(6);
-f6.Position = [300, 100, 1200, 500];
+f6.Position = [300, 0, 600, 1250];
 set(f6, 'color', 'white');
 
 % initialize layout
-tl6 = tiledlayout(1, 2);
-tl6.TileSpacing = 'loose';
+tl6 = tiledlayout(2, 1);
+tl6.TileSpacing = 'compact';
 tl6.Padding = 'compact';
 
 % allocate space for plot lines
@@ -786,12 +788,12 @@ end
 
 nexttile(1)
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
     'TickLength', [0.02 0.02], 'YScale', 'log')
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
-    'latex', 'FontSize', 18)
+    'latex', 'FontSize', 24)
 ylabel('$d_\mathrm{pp}^{(i)}$ [nm]', 'interpreter', 'latex',...
-    'FontSize', 18)
+    'FontSize', 24)
 xlim([0.5 5.5])
 ylim([4.5 70])
 yticks(cat(2,5:10,linspace(20,60,5)))
@@ -800,37 +802,37 @@ yticks(cat(2,5:10,linspace(20,60,5)))
 
 nexttile(2)
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
     'TickLength', [0.02 0.02], 'xScale', 'log')
 xlabel('$d_\mathrm{pp}^\mathrm{(i)}$ [nm]', 'interpreter', 'latex',...
-    'FontSize', 18)
+    'FontSize', 24)
 ylabel('$f_{d_\mathrm{pp}^\mathrm{(i)}}^\mathrm{(2D)} / f_{d_\mathrm{pp}^\mathrm{(i)}}^\mathrm{(3D)}$',...
-    'interpreter', 'latex', 'FontSize', 18)
+    'interpreter', 'latex', 'FontSize', 24)
 xlim([7 50])
 ylim([0.6 1.4])
 legend(cat(1, plt62{:}), cat(1,legtxt2,...
     {'$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle^\mathrm{(3D)}$'},...
     {'$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle^\mathrm{(2D)}_{n_\mathrm{agg}/(n_\mathrm{agg})_2=0.01}$'},...
-    {'1:1 line'}), 'interpreter', 'latex', 'FontSize', 14,...
-    'Location', 'eastoutside')
+    {'1:1 line'}), 'interpreter', 'latex', 'FontSize', 18,...
+    'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal')
 
 %% a better representation of figure 4 in the form of parity plots %%
 
 % initialize figure
 f7 = figure(7);
-f7.Position = [350, 150, 1000, 550];
+f7.Position = [350, 50, 1000, 1000];
 set(f7, 'color', 'white')
 
 % initialize layout
-tl7 = tiledlayout(1, 2);
+tl7 = tiledlayout(2, 2);
 tl7.TileSpacing = 'compact';
 tl7.Padding = 'compact';
 
 plt7 = cell(n_shot+1, 1); % initialize placholders for plots
 
-bp7 = cell(n_shot, 1); % allocate space for boxplots in second tile
+bp7 = cell(n_shot, 2); % allocate space for boxplots in second tile
 
-nexttile(1) % x axis is actual mean primary particle diameter and...
+nexttile(1,[1,2]) % x axis is actual mean primary particle diameter and...
     % ...y axis is calculated mean primary particle diameter...
     % ...considering screening
 da0_f7 = linspace(1, 2e3, 1e2);
@@ -841,13 +843,13 @@ hold on
 
 for i = 1 : n_shot
     
-    nexttile(1)
+    nexttile(1,[1,2])
     % plot screened vs actual mean primary particle diameter witin...
         % ...aggregates
     plt7{i} = scatter(1e9 * parsdata(i).da, dpp_2d{i,3,2}./...
-        dpp_2d{i,1,2}, ms2(i), clr2(i,:), mt2{i}, 'LineWidth', 1);
+        dpp_2d{i,1,2}, 2*ms2(i), clr2(i,:), mt2{i}, 'LineWidth', 1);
 
-    nexttile(2)
+    nexttile(3)
 
     % box-whisker distributions showing ratio of observed to actual...
         % ...mean primary particle diameter within individual aggregates
@@ -880,30 +882,73 @@ for i = 1 : n_shot
     xticks(1 : n_shot)  % specify tick positions for horizontal axis
     xticklabels(xlbl2)  % assign labels to ticks
     
+    nexttile(4)
+
+    % box-whisker distributions showing ratio of observed to actual...
+        % ...GSD of primary particle diameter within individual aggregates
+    bp7{i,2} = boxplot(sigmapp_2d{i,3} ./ sigmapp_2d{i,1}, 'Positions', i,...
+        'Notch', 'on', 'Symbol', 'o', 'Widths', 0.5);
+    hold on
+    
+    % Find the box object
+    boxObj = findobj(bp7{i,2}, 'Tag', 'Box');
+    
+    % fill inside the box
+    patch(get(boxObj, 'XData'), get(boxObj, 'YData'), clr2(i, :),...
+        'FaceAlpha', 0.3, 'EdgeColor', clr2(i, :), 'LineWidth', 1);
+    
+    % adjust the median line
+    boxMed = findobj(bp7{i,2}, 'Tag', 'Median');
+    set(boxMed, 'Color', clr2(i, :), 'LineWidth', 2);
+    
+    % adjust outlier markers
+    outliers = findobj(bp7{i,2}, 'Tag', 'Outliers');
+    outliers.MarkerEdgeColor = clr2(i, :);
+    outliers.MarkerSize = 3;
+    
+    % adjust whiskers
+    upwhisker = findobj(bp7{i,2},'type', 'line', 'tag', 'Upper Whisker');
+    set(upwhisker, 'linestyle', '-');
+    lowwhisker= findobj(bp7{i,2}, 'type', 'line','tag', 'Lower Whisker');
+    set(lowwhisker, 'linestyle', '-');
+    
+    xticks(1 : n_shot)  % specify tick positions for horizontal axis
+    xticklabels(xlbl2)  % assign labels to ticks
+
 end
 
 % set plot appearances
 
-nexttile(1)
+nexttile(1,[1,2])
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
     'TickLength', [0.02 0.02], 'xScale', 'log')
-xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 18)
+xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 24)
 ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
-    'interpreter', 'latex', 'FontSize', 18)
+    'interpreter', 'latex', 'FontSize', 24)
 xlim([18 1500])
 ylim([0.96 1.16])
 legend(cat(1, plt7{:}), cat(1,legtxt2, {'1:1 line'}),...
-    'interpreter', 'latex', 'FontSize', 14, 'Location', 'southoutside',...
-    'NumColumns', 2)
+    'interpreter', 'latex', 'FontSize', 18, 'Location', 'northoutside',...
+    'NumColumns', 3)
 
-nexttile(2)
+nexttile(3)
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
     'TickLength', [0.02 0.02])
+ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
+    'interpreter', 'latex', 'FontSize', 24)
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
-    'latex', 'FontSize', 18) % label for horizontal axis
+    'latex', 'FontSize', 24) % label for horizontal axis
 
+nexttile(4)
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
+    'TickLength', [0.02 0.02])
+ylabel('$\sigma_\mathrm{pp}^\mathrm{(2D)} / \sigma_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
+    'interpreter', 'latex', 'FontSize', 24)
+xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
+    'latex', 'FontSize', 24) % label for horizontal axis
 
 %% save plots and workspace %%
 
