@@ -133,7 +133,7 @@ cb1.LineWidth = 1;
 
 % initialize figure
 f2 = figure(2);
-f2.Position = [100, 100, 1050, 500];
+f2.Position = [100, 100, 1050, 550];
 set(f2, 'color', 'white');
 
 % initialize layout
@@ -189,15 +189,15 @@ for i = 1 : n_shot
     
     if i == 1
         % print mean of each distribution
-        text((i - 0.85), 1.03, ...
+        text((i - 0.82), 1.03, ...
             sprintf('$\\langle{S}_\\mathrm{pp}\\rangle$ = %.2f', mu_spp(i)),...
             'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
-            'FontSize', 12)
+            'FontSize', 16)
     else
         % print mean of each distribution
-        text((i - 0.5), 1.03, num2str(mu_spp(i), '%.2f'),...
+        text((i - 0.48), 1.03, num2str(mu_spp(i), '%.2f'),...
             'Interpreter', 'latex', 'HorizontalAlignment', 'center',...       
-            'FontSize', 12)    
+            'FontSize', 16)    
     end
     
     % total number of primary particles across all aggregates
@@ -239,13 +239,14 @@ xticklabels(xlbl2)  % assign labels to ticks
 
 % set plot appearances
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 16,...
     'TickLength', [0.02 0.02])
 xlim([-0.5 5])
 ylim([0 1])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
-    'FontSize', 18)
-ylabel('$S_\mathrm{pp}^\mathrm{(i)}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
+    'FontSize', 22)
+ylabel('$S_\mathrm{pp}^\mathrm{(i)}$ [-]', 'interpreter', 'latex',...
+    'FontSize', 22)
 
 %% plot shielding factor vs. number of primary particles,...
     % ...colorcode based on polydispersity, and assign markers based...
@@ -300,18 +301,18 @@ bounds_sagg_f2 = [0.95 * min(cat(1, parsdata.sagg)),...
 
 % set plot appearances
 box on
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 16,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(bounds_npp_f2)
 ylim(bounds_sagg_f2)
-xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 18)
+xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 22)
 ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex',...
-    'FontSize', 18)
+    'FontSize', 22)
 yticks(cat(2, linspace(0.01,0.1,10), linspace(0.2,1,9)))
 
 % print legends
 legend(cat(1, scat2{:}), legtxt2, 'interpreter', 'latex',...
-    'FontSize', 14, 'Location', 'southeast');
+    'FontSize', 16, 'Location', 'southeast');
 
 %% plot distributions of observed primary particle diameters %%
 
@@ -796,7 +797,7 @@ ylabel('$d_\mathrm{pp}^{(i)}$ [nm]', 'interpreter', 'latex',...
     'FontSize', 24)
 xlim([0.5 5.5])
 ylim([4.5 70])
-yticks(cat(2,5:10,linspace(20,60,5)))
+yticks(cat(2,[5 6 8 10],linspace(20,60,5)))
 % legend(plt61{end}, '$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle$',...
 %     'interpreter', 'latex', 'FontSize', 14, 'location', 'southeast')
 
@@ -947,6 +948,7 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
     'TickLength', [0.02 0.02])
 ylabel('$\sigma_\mathrm{pp}^\mathrm{(2D)} / \sigma_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
     'interpreter', 'latex', 'FontSize', 24)
+ylim([0.95 1.05])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
     'latex', 'FontSize', 24) % label for horizontal axis
 
