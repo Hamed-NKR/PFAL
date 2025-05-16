@@ -7,7 +7,7 @@ warning('off')
 %% Initialize and load second-stage LD aggregates %%
 
 % address of second-stage langevin dynamics data to be imported
-fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\SCAT';
+fdir_simul = 'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
 fname_simul = 'LD2-25NOV24';
 % fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\FLAT';
 % fname_simul = 'LD2_27-Nov-2024_04-21-58_Final';
@@ -377,8 +377,8 @@ fill([bayesfit.xfit; flipud(bayesfit.xfit)], [bayesfit.bounds_yfit(:,1);...
       flipud(bayesfit.bounds_yfit(:,2))], hex2rgb('#659287'),...
       'EdgeColor', 'none', 'FaceAlpha', 0.3);
 
-% [dm_ols, rho_ols_mean, rho_ols_lower, rho_ols_upper] =...
-%     UTILS.OLSLOGPOLYFIT2(pars_flt.dm, pars_flt.rho_eff);
+[dm_ols, rho_ols_mean, rho_ols_lower, rho_ols_upper] =...
+    UTILS.OLSLOGPOLYFIT2(pars_flt.dm, pars_flt.rho_eff);
 % plot(1e9 * dm_ols, rho_ols_mean, 'Color', hex2rgb('#9F5255'),...
 %     'LineWidth', 1);
 % fill([1e9 * dm_ols; flipud(1e9 * dm_ols)], [rho_ols_lower; rho_ols_upper],...

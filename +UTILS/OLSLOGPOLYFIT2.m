@@ -27,6 +27,11 @@ function [dm_fit, rho_fit_mean, rho_fit_lower, rho_fit_upper] = OLSLOGPOLYFIT2(d
     C = inv(X' * X);
     tval = tinv(0.975, n - p);
 
+    % Standard errors and confidence intervals
+    se_beta = sqrt(diag(C) * sigma2);
+    ci_lower = beta - tval * se_beta;
+    ci_upper = beta + tval * se_beta;    
+
     % Generate predictions on same centered domain
     x_fit_log = linspace(min(x_log), max(x_log), 500)';
     x_fit_c = x_fit_log - x0;
