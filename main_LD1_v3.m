@@ -1,3 +1,7 @@
+%%% This script is still buggy, use the first half of...
+    % ...script: main_PFA_v2_2.m instead to generate a library of DLCA...
+    % ...aggregates.
+
 clc
 clear
 clf('reset')

@@ -40,7 +40,7 @@ end
 % Setting the location of colormaps to choose for painting a uniform...
 % ...aggregates
 if ~isfield(opts, 'cloc'); opts.cloc = []; end
-if isempty(opts.cloc); opts.cloc = 0.25; end
+if isempty(opts.cloc); opts.cloc = 0.1; end
 
 ids = unique(id_agg); % unique agg ids existing in the population
 n_agg = length(ids); % number of aggs existing
