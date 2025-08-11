@@ -8,8 +8,8 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'D:\Hamed\CND\PhD\Publication\DLCA2\outputs\Shield_11-Apr-2025_00-35-50';
-fname_in = 'Shield_11-Apr-2025_00-35-50';
+fdir_in = 'D:\Hamed\CND\PhD\Publication\DLCA2\outputs\Shield_2025-08-09_18-03-51';
+fname_in = 'Shield_2025-08-09_18-03-51';
 
 varnames = {'parsdata'}; % varaiables to be imported
 
@@ -133,7 +133,7 @@ cb1.LineWidth = 1;
 
 % initialize figure
 f2 = figure(2);
-f2.Position = [100, 100, 1050, 550];
+f2.Position = [100, 100, 1150, 550];
 set(f2, 'color', 'white');
 
 % initialize layout
@@ -159,7 +159,7 @@ mu_spp = zeros(n_shot, 1); % allocate means of shielding factor
 f_spp = cell(n_shot, 1);
 xi_spp = cell(n_shot, 1);
 
-scale_spp = -0.25; % assign a scale for PFD to adjust curve extents
+scale_spp = -0.1; % assign a scale for PFD to adjust curve extents
 
 % allocate labels for x axis
 xlbl2 = cell(n_shot, 1);
@@ -241,7 +241,7 @@ xticklabels(xlbl2)  % assign labels to ticks
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 16,...
     'TickLength', [0.02 0.02])
-xlim([-0.5 5])
+xlim([-0.5 4.8])
 ylim([0 1])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter', 'latex',...
     'FontSize', 22)
@@ -308,7 +308,7 @@ ylim(bounds_sagg_f2)
 xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 22)
 ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex',...
     'FontSize', 22)
-yticks(cat(2, linspace(0.01,0.1,10), linspace(0.2,1,9)))
+yticks([0.01 0.02 0.03 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.6 0.8 1])
 
 % print legends
 legend(cat(1, scat2{:}), legtxt2, 'interpreter', 'latex',...

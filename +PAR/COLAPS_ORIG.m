@@ -35,7 +35,7 @@ function [pps, n_steps] = COLAPS(pp0, n_steps, specs, opts)
 % ----------------------------------------------------------------------- %
 
 % default values
-defSpecs = struct('k_spring', 0.2, 'k_decay', 1.0, 'jit', 0.01,...
+defSpecs = struct('k_spring', 0.2, 'k_decay', 1.0, 'jit', 0.0,...
     'jit_decay', 0.98, 'lj_eps', 0.5, 'lj_decay', 0.98, 'dt', 0.01);
 defOpts  = struct('showProgress', true);
 

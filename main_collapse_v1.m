@@ -6,10 +6,14 @@ close all
 
 % load previously saved aggregate data
 
+% fdir_pars =... % address for folder that contains aggregate coordinate data
+%     'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp10\FLAT';
+% fname_pars = 'FLAT-26NOV24'; % aggregate info filename
+% parsname = 'pars_out'; % variable to load
 fdir_pars =... % address for folder that contains aggregate coordinate data
-    'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp10\FLAT';
-fname_pars = 'FLAT-26NOV24'; % aggregate info filename
-parsname = 'pars_out'; % variable to load
+    'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
+fname_pars = 'LD2-25NOV24'; % aggregate info filename
+parsname = 'parsdata'; % variable to load
 
 fdir_fl =... % address for folder that contains fluid structure data
     'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
@@ -26,10 +30,12 @@ load(fullfile(fdir_fl, strcat(fname_fl, '.mat')), 'fl');
 eval(['pars_in' ' = ' parsname ';']);
 eval(['clear ' parsname]);
 
+rho0 = 1860; % soot material density
+
 %% set up effective density figure
 
 % indices of aggregates to be collapsed
-ind_agg = [1, 150; 1, 503; 1, 750];
+ind_agg = [1, 140; 1, 270; 1, 641];
 
 % define colors for plotting
 clr1 = hex2rgb({'#DA6C6C', '#659287', '#6096B4'});
@@ -51,7 +57,7 @@ dm_cmass = logspace(0, 4, 1000); % define a range of mobility diameters
 constMasses = logspace(6, 12, 25); % choose arbitrary constant masses
 for k = 1:length(constMasses)
     rho_iso = constMasses(k) ./ (dm_cmass.^3); % proportional to 1/d^3
-    plt_cmass = plot(dm_cmass, rho_iso, '--', 'Color', [0.4 0.4 0.4],...
+    plt_cmass = plot(dm_cmass, rho_iso, '--', 'Color', [0.6 0.6 0.6],...
         'LineWidth', 0.5);
     hold on
 end
@@ -98,10 +104,10 @@ ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
 %% simulate collapse and calculate screening
 
 % pick aggregate for collapsing
-pp0 = pars_in(ind_agg(1,1)).pp{ind_agg(1,2)};
+pp0 = pars_in(ind_agg(3,1)).pp{ind_agg(3,2)};
 
 % apply Beeler et al. (2025)'s collapse algorithm
-[pps, n_steps] = PAR.COLAPS(pp0);
+[pps, n_steps] = PAR.COLAPS_NEW(pp0);
 
 % initialize temporal arrays for screening factor (using 3 different...
     % ...calculation methods)
@@ -154,17 +160,12 @@ for kk = 1 : n_steps
     dms(kk) = TRANSP.DIAMOBIL(pars_temp.dg(1), pars_temp.da(1), fl);
 
     % cffective densities as per time history of mobility diameters
-    rhos(kk) = 1860 * sum(pps{kk}(:,2).^3) ./ dms(kk).^3;
-
-    % save iteration index where density is near collapse correlation
-    if abs(rhos(kk) / colcor(1e9 * dms(kk)) - 1) < 0.01
-        n_uni = kk;
-    end
+    rhos(kk) =  rho0 * sum(pps{kk}(:,2).^3) ./ dms(kk).^3;
 
     % calculate screening factors for individual primary particles in...
         % ...compacted aggregate
     [spps_i_singleSide{kk}, spps_i_doubleSide{kk},...
-        spps_i_doubleLayer{kk}] = SHIELD_METHODS(pps{kk});
+        spps_i_doubleLayer{kk}] = PAR.SHIELD_METHODS(pps{kk});
     
     % mean screening within each aggregate
     spps_singleSide(kk) = mean(spps_i_singleSide{kk});
@@ -180,6 +181,11 @@ for kk = 1 : n_steps
     % update progress bar
     UTILS.TEXTBAR([kk, n_steps]);
     
+    % save iteration index where density is near collapse correlation
+    if abs(rhos(kk) / colcor(1e9 * dms(kk)) - 1) < 0.01
+        n_uni = kk;
+    end
+
 end
 
 %% visualize change in effective density
@@ -192,7 +198,7 @@ axes(tl1_22) % navigate to effective density subplot
 
 % plot effective densities
 scat_intmed = scatter(1e9 * dms(ind_temp), rhos(ind_temp), 5,...
-    [0 0 0], '.', 'LineWidth', 1.5); % intermediate
+    [0.2 0.2 0.2], '.', 'LineWidth', 1.5); % intermediate
 scat_lacey = scatter(1e9 * dms(1), rhos(1), 75, clr1(1,:), 'h',...
     'LineWidth', 2); % initial
 scat_unicol = scatter(1e9 * dms(n_uni), rhos(n_uni), 50, clr1(2,:),...
@@ -215,8 +221,8 @@ legend([plt_unicor, plt_colcor, plt_cmass, scat_intmed, scat_lacey,...
 tl1_1_4 = nexttile(4);
 opts.cm = UTILS.CUSTOMABYSSMAP('red');
 UTILS.PLOTPP(pps{1}(:,3), pps{1}(:,4), pps{1}(:,5), pps{1}(:,2), [], opts)
-title({strcat('Aggregate (', int2str(1), ')'), ''},...
-    'interpreter', 'latex', 'FontSize', 20)
+% title({strcat('Aggregate (', int2str(1), ')'), ''},...
+%     'interpreter', 'latex', 'FontSize', 20)
 subtitle('Lacey', 'interpreter', 'latex', 'FontSize', 18)
 
 % draw compacted aggregate to Sapkota et al.'s correlation
@@ -239,18 +245,19 @@ subtitle('Compact', 'interpreter', 'latex', 'FontSize', 18)
 
 % set up figure to monitor screening effect
 f2 = figure(2);
-f2.Position = [100, 100, 900, 300];
+f2.Position = [100, 100, 1100, 400];
 set(f2, 'color', 'white')
 
 tl2 = tiledlayout(1,3);
 tl2.TileSpacing = 'compact';
 tl2.Padding = 'compact';
 
+% plot average screening factor vs. mobility diameter
+
 nexttile(1)
 
-% plot average screening factor vs. mobility diameter
-scatter(1e9 * dms(ind_temp), spps_singleSide(ind_temp), 5, [0 0 0], '.',...
-    'LineWidth', 1.5);
+scatter(1e9 * dms(ind_temp), spps_singleSide(ind_temp), 5, [0.2 0.2 0.2],...
+    '.', 'LineWidth', 1.5);
 hold on
 scatter(1e9 * dms(1), spps_singleSide(1), 50, clr1(1,:), 'h', 'LineWidth',...
     1.5);
@@ -261,16 +268,53 @@ scatter(1e9 * dms(kk), spps_singleSide(kk), 40, clr1(3,:), 'o', 'LineWidth',...
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14,...
     'TickLength', [0.015 0.015])
-xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
+% xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
 xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 20)
 ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex',...
     'FontSize', 20)
+title('Single side', 'interpreter', 'latex', 'FontSize', 20)
+
+nexttile(2)
+
+scatter(1e9 * dms(ind_temp), spps_doubleSide(ind_temp), 5, [0.2 0.2 0.2],...
+    '.', 'LineWidth', 1.5);
+hold on
+scatter(1e9 * dms(1), spps_doubleSide(1), 50, clr1(1,:), 'h', 'LineWidth',...
+    1.5);
+scatter(1e9 * dms(n_uni), spps_doubleSide(n_uni), 40, clr1(2,:), '^',...
+    'LineWidth', 1.5);
+scatter(1e9 * dms(kk), spps_doubleSide(kk), 40, clr1(3,:), 'o', 'LineWidth',...
+    1.5);
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14,...
+    'TickLength', [0.015 0.015])
+% xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 20)
+title('Double side', 'interpreter', 'latex', 'FontSize', 20)
+
+nexttile(3)
+
+scatter(1e9 * dms(ind_temp), spps_doubleLayer(ind_temp), 5, [0.2 0.2 0.2],...
+    '.', 'LineWidth', 1.5);
+hold on
+scatter(1e9 * dms(1), spps_doubleLayer(1), 50, clr1(1,:), 'h', 'LineWidth',...
+    1.5);
+scatter(1e9 * dms(n_uni), spps_doubleLayer(n_uni), 40, clr1(2,:), '^',...
+    'LineWidth', 1.5);
+scatter(1e9 * dms(kk), spps_doubleLayer(kk), 40, clr1(3,:), 'o', 'LineWidth',...
+    1.5);
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14,...
+    'TickLength', [0.015 0.015])
+% xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 20)
+title('Double layer', 'interpreter', 'latex', 'FontSize', 20)
 
 %% visualize change in primary particle bias
 
 % set up figure to monitor screening effect
 f3 = figure(3);
-f3.Position = [150, 150, 900, 300];
+f3.Position = [150, 150, 1100, 400];
 set(f3, 'color', 'white')
 
 tl3 = tiledlayout(1,3);
@@ -278,172 +322,61 @@ tl3.TileSpacing = 'compact';
 tl3.Padding = 'compact';
 
 % plot 2d-observed average primary particle diameter vs. mobility diameter
+
 nexttile(1) 
-scatter(1e9 * dms(ind_temp), 1e9 * dpps(ind_temp), 5, [0.2 0.2 0.2], '.',...
-    'LineWidth', 1.5);
+
+scatter(1e9 * dms(ind_temp), 1e9 * dpps_singleSide(ind_temp), 5,...
+    [0.2 0.2 0.2], '.', 'LineWidth', 1.5);
 hold on
-scatter(1e9 * dms(1), 1e9 * dpps(1), 50, clr1(1,:), 'h', 'LineWidth', 1.5);
-scatter(1e9 * dms(n_uni), 1e9 * dpps(n_uni), 40, clr1(2,:), '^',...
+scatter(1e9 * dms(1), 1e9 * dpps_singleSide(1), 50, clr1(1,:), 'h',...
     'LineWidth', 1.5);
-scatter(1e9 * dms(kk), 1e9 * dpps(kk), 40, clr1(3,:), 'o', 'LineWidth',...
-    1.5);
+scatter(1e9 * dms(n_uni), 1e9 * dpps_singleSide(n_uni), 40, clr1(2,:),...
+    '^', 'LineWidth', 1.5);
+scatter(1e9 * dms(kk), 1e9 * dpps_singleSide(kk), 40, clr1(3,:), 'o',...
+    'LineWidth', 1.5);
 box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14,...
     'TickLength', [0.015 0.015])
-xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
-ylim([0.9*1e9*min(dpps(1:kk)) 1.2*1e9*max(dpps(1:kk))])
+% xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
+% ylim([0.9*1e9*min(dpps_singleSide(1:kk)) 1.2*1e9*max(dpps_singleSide(1:kk))])
 xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 20)
-ylabel('$d_\mathrm{pp}$ [-]', 'interpreter', 'latex',...
-    'FontSize', 20)
+ylabel('$d_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 20)
+title('Single side', 'interpreter', 'latex', 'FontSize', 20)
 
-%% functionality to calculate shielding factor %%
+nexttile(2) 
 
-function [spp_i_singleSide, spp_i_doubleSide, spp_i_doubleLayer] =...
-    SHIELD_METHODS(pp, n_points, opts)
+scatter(1e9 * dms(ind_temp), 1e9 * dpps_doubleSide(ind_temp), 5,...
+    [0.2 0.2 0.2], '.', 'LineWidth', 1.5);
+hold on
+scatter(1e9 * dms(1), 1e9 * dpps_doubleSide(1), 50, clr1(1,:), 'h',...
+    'LineWidth', 1.5);
+scatter(1e9 * dms(n_uni), 1e9 * dpps_doubleSide(n_uni), 40, clr1(2,:),...
+    '^', 'LineWidth', 1.5);
+scatter(1e9 * dms(kk), 1e9 * dpps_doubleSide(kk), 40, clr1(3,:), 'o',...
+    'LineWidth', 1.5);
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14,...
+    'TickLength', [0.015 0.015])
+% xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
+% ylim([0.9*1e9*min(dpps_singleSide(1:kk)) 1.2*1e9*max(dpps_singleSide(1:kk))])
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 20)
+title('Double side', 'interpreter', 'latex', 'FontSize', 20)
 
-% "SHIELD_METHODS": (i) creates equally spaced points on perimeter of...
-%   ...each primary particle in z direction, (ii) counts how many other...
-%   ...primary particles overlay each of those points on that same...
-%   ...direction, and (iii) calculates fraction of overlayed to overall...
-%   ...points to decide whether the discretized primary particle is...
-%   ...observable or screened based on three different criteria...
-%   ...described within the function.
-% ----------------------------------------------------------------------- %
-%
-% Inputs:
-%
-%   pp: N*6 array of primary particle information for an individual...
-%       ...aggregate (column1: index, 2: diameter, 3-5: x,y,z...
-%       ...coordinates, 6: subaggregate index).
-%
-%   n_points: Number of discretization points on each primary particle...
-%       ...perimeter (optional, default: 25).
-%
-%   opts: struct (optional)
-%       Options:
-%           .chunkSize: Dividing calculations into steps to reduce...
-%               ...chances of memory outage (default: 5000).
-% ----------------------------------------------------------------------- %
-%
-% Output:
-%
-%   spp_i: An N*1 vector where each element is screening factor...
-%       ...associated with primary particle of same order in pp.
-%
-%
-%   spp_i in [0 1] range where:
-%       spp_i = 1 => screened | spp_i = 0 => observable.
-%
-%   A discretization point is considered screened if:
-%           _singleSide: "One" or more primary particles overlay...
-%               ...above it along "+z" projected direction.
-%           _doubleSide: "One" or more primary particles overlay with...
-%               ...it along both "+/-z" projected directions.
-%           _doubleLayer: "Two" or more primary particles overlay...
-%               ...with it along both "+/-z" projected directions.
-% ----------------------------------------------------------------------- %
+nexttile(3) 
 
-% set default values
-
-if nargin < 2 || isempty(n_points); n_points = 25; end
-
-defOpts  = struct('chunkSize', 5000);
-
-if nargin < 3 || isempty(opts)
-    opts = defOpts;
-else
-    fn = fieldnames(defOpts);
-    for i = 1:numel(fn)
-        if ~isfield(opts, fn{i})
-            opts.(fn{i}) = defOpts.(fn{i});
-        end
-    end
-end
-
-% discretization angles
-theta = linspace(0, 2*pi, n_points);
-
-npp = size(pp,1); % number of primary particles in aggregate
-
-% initialize screening factor for individual primary particles
-spp_i_singleSide = zeros(npp, 1);
-spp_i_doubleSide = zeros(npp, 1);
-spp_i_doubleLayer = zeros(npp, 1);
-
-% make primary particle pair indices
-kk = table2array(combinations(1 : npp, 1 : npp));
-
-% whether a primary particle is further from the viewer than another...
-    % ...primary particle
-dz = pp(kk(:,1),5) < pp(kk(:,2),5);
-
-% locations of circumferential points on perimeter of each primary...
-    % ...particle in x-y plane
-x_c = pp(:,3) + repmat(pp(:,2)/2, 1, n_points) .* ...
-    cos(repmat(theta, npp, 1)); % x location
-y_c = pp(:,4) + repmat(pp(:,2)/2, 1, n_points) .* ...
-    sin(repmat(theta, npp, 1)); % y location
-
-for k = 1 : npp % loop through primary particles to calculate...
-        % ...screening for each
-
-    % find indices of pair-wise combination specific to each primary...
-        % ...particle
-    kkk = find((kk(:,1) == k));
-
-    % initialize number of points screened on each primary particle
-    spp0 = zeros(1, length(kkk)); 
-    
-    spp00 = zeros(1, length(kkk)); % considers screening when at least...
-        % ... two primary particles fall along the discretization point
-    
-    n0_points = zeros(1, n_points); % initialize number of primary...
-        % ...particles overlaying along each discretization point
-    
-    % process in chunks to reduce memory usage
-    for c = 1 : opts.chunkSize : length(kkk)
-
-        c_end = min(c + opts.chunkSize - 1, length(kkk));
-        idx_chunk = kkk(c:c_end);
-        src_idx = kk(idx_chunk,1); % always equal to k
-        tgt_idx = kk(idx_chunk,2);
-
-        % circumferential point distances to other primary particle...
-            % ...centers
-        dx = x_c(src_idx,:) - pp(tgt_idx,3);
-        dy = y_c(src_idx,:) - pp(tgt_idx,4);
-        r2 = dx.^2 + dy.^2;
-
-        % compare to radius of other particle (squared threshold)
-        r_thresh2 = pp(tgt_idx,2).^2 / 4;
-        r_thresh2 = repmat(r_thresh2, 1, size(dx,2));
-
-        % whether circumferential points fall within projections...
-            % ...of other primary particles
-        dr_chunk = r2 < r_thresh2;
-
-        % count the number of screened circumferential points
-        spp0(c:c_end) = sum(dr_chunk, 2);
-        
-        % count how many primary particles are along each point
-        n0_points = n0_points + sum(dr_chunk, 1);
-
-        % count screened points with the more rigorous layered criteria
-        spp00(c:c_end) = sum(dr_chunk(:, n0_points>1), 2);
-
-    end
-    
-    % select maximum obscured perimeter points as final screening
-    if ~isempty(spp0(dz(kkk)))
-        spp_i_singleSide(k) = max(spp0(dz(kkk))) / n_points; % choose...
-            % ...only the ones with lower z
-        spp_i_doubleSide(k) = max(spp0) / n_points; % choose regardless...
-            % ...of z
-        spp_i_doubleLayer(k) = max(spp00) / n_points; % choose...
-            % ...considering a simple optical depth criterion
-    end
-
-end
-
-end
-
+scatter(1e9 * dms(ind_temp), 1e9 * dpps_doubleLayer(ind_temp), 5,...
+    [0.2 0.2 0.2], '.', 'LineWidth', 1.5);
+hold on
+scatter(1e9 * dms(1), 1e9 * dpps_doubleLayer(1), 50, clr1(1,:), 'h',...
+    'LineWidth', 1.5);
+scatter(1e9 * dms(n_uni), 1e9 * dpps_doubleLayer(n_uni), 40, clr1(2,:),...
+    '^', 'LineWidth', 1.5);
+scatter(1e9 * dms(kk), 1e9 * dpps_doubleLayer(kk), 40, clr1(3,:), 'o',...
+    'LineWidth', 1.5);
+box on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14,...
+    'TickLength', [0.015 0.015])
+% xlim([0.9*1e9*dms(kk) 1.2*1e9*dms(1)])
+% ylim([0.9*1e9*min(dpps_singleSide(1:kk)) 1.2*1e9*max(dpps_singleSide(1:kk))])
+xlabel('$d_\mathrm{m}$ [nm]', 'interpreter', 'latex', 'FontSize', 20)
+title('Double layer', 'interpreter', 'latex', 'FontSize', 20)
