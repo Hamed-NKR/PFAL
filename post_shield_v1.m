@@ -8,8 +8,8 @@ warning('off')
 
 % location of previously saved aggregate data (this should include...
     % ...spp field in pars strcuture for primary particle shielding)
-fdir_in = 'D:\Hamed\CND\PhD\Publication\DLCA2\outputs\Shield_2025-08-09_18-03-51';
-fname_in = 'Shield_2025-08-09_18-03-51';
+fdir_in = 'D:\Hamed\CND\PhD\Publication\DLCA2\outputs\Shield_2025-08-12_08-29-01_opaque';
+fname_in = 'Shield_2025-08-12_08-29-01_opaque';
 
 varnames = {'parsdata'}; % varaiables to be imported
 
@@ -304,11 +304,11 @@ box on
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 16,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim(bounds_npp_f2)
-ylim(bounds_sagg_f2)
+ylim([0.05 1])
 xlabel('$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 22)
 ylabel('$S_\mathrm{pp}$ [-]', 'interpreter', 'latex',...
     'FontSize', 22)
-yticks([0.01 0.02 0.03 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.6 0.8 1])
+yticks([0.01 0.02 0.03 0.05 0.07 0.1 0.2 0.3 0.5 0.7 1])
 
 % print legends
 legend(cat(1, scat2{:}), legtxt2, 'interpreter', 'latex',...
@@ -809,8 +809,8 @@ xlabel('$d_\mathrm{pp}^\mathrm{(i)}$ [nm]', 'interpreter', 'latex',...
     'FontSize', 24)
 ylabel('$f_{d_\mathrm{pp}^\mathrm{(i)}}^\mathrm{(2D)} / f_{d_\mathrm{pp}^\mathrm{(i)}}^\mathrm{(3D)}$',...
     'interpreter', 'latex', 'FontSize', 24)
-xlim([7 50])
-ylim([0.6 1.4])
+xlim([9 38])
+ylim([0.8 1.2])
 legend(cat(1, plt62{:}), cat(1,legtxt2,...
     {'$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle^\mathrm{(3D)}$'},...
     {'$\langle{d_\mathrm{pp}^\mathrm{(i)}}\rangle^\mathrm{(2D)}_{n_\mathrm{agg}/(n_\mathrm{agg})_2=0.01}$'},...
@@ -927,8 +927,8 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
 xlabel('$d_\mathrm{a}$ [nm]', 'interpreter', 'latex', 'FontSize', 24)
 ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
     'interpreter', 'latex', 'FontSize', 24)
-xlim([18 1500])
-ylim([0.96 1.16])
+xlim([18 1400])
+ylim([0.8 1.2])
 legend(cat(1, plt7{:}), cat(1,legtxt2, {'1:1 line'}),...
     'interpreter', 'latex', 'FontSize', 18, 'Location', 'northoutside',...
     'NumColumns', 3)
@@ -941,6 +941,7 @@ ylabel('$d_\mathrm{pp}^\mathrm{(2D)} / d_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
     'interpreter', 'latex', 'FontSize', 24)
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
     'latex', 'FontSize', 24) % label for horizontal axis
+ylim([0.8 1.2])
 
 nexttile(4)
 box on
@@ -948,7 +949,7 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 18,...
     'TickLength', [0.02 0.02])
 ylabel('$\sigma_\mathrm{pp}^\mathrm{(2D)} / \sigma_\mathrm{pp}^\mathrm{(3D)}$ [-]',...
     'interpreter', 'latex', 'FontSize', 24)
-ylim([0.95 1.05])
+ylim([0.8 1.2])
 xlabel('$n_\mathrm{agg}/(n_\mathrm{agg})_2$ [-]', 'interpreter',...
     'latex', 'FontSize', 24) % label for horizontal axis
 
