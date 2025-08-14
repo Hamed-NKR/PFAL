@@ -27,8 +27,9 @@ if ~isfield(opts, 'cc'), opts.cc = 'off'; end
 if ~isfield(opts, 'cloc'), opts.cloc = 0.25; end
 
 % --- Determine coloring mode ---
-use_scalar_coloring = strcmpi(opts.cc, 'on') && isnumeric(colorval) && ...
-                      (any(colorval ~= round(colorval)) || any(colorval < 1));
+% use_scalar_coloring = strcmpi(opts.cc, 'on') && isnumeric(colorval) && ...
+%                       (any(colorval ~= round(colorval)) || any(colorval < 1));
+use_scalar_coloring = strcmpi(opts.cc, 'on');
 
 % --- Prepare color mapping ---
 if use_scalar_coloring
