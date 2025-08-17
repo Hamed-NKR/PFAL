@@ -47,11 +47,11 @@ titex = opts.ttl;
 if isempty(titex)
     titex = cell(6,1);
     titex{1} = '(a) Reference';
-    titex{2} = '(b) $\overline{\overline{d}}_\mathrm{a}$ = 200 nm';
-    titex{3} = '(c) $\sigma_\mathrm{g,a}$ = 1.6';
-    titex{4} = '(d) $\sigma_\mathrm{g,pp,ens}$ = 1.3';
+    titex{2} = '(b) $\left(\overline{d}_\mathrm{a}\right)_2$ = 200 nm';
+    titex{3} = '(c) $\left(s_\mathrm{a}\right)_2$ = 1.6';
+    titex{4} = '(d) $\left(\gamma_\mathrm{pp}\right)_1$ = 1.3';
     titex{5} = '(e) $D_{\mathrm{TEM}}$ = 0.5';
-    titex{6} = '(f) $f_\mathrm{v}$ = 20 ppm';
+    titex{6} = '(f) $\left(f_\mathrm{v}\right)_2$ = 20 ppm';
 end
 
 % make the colormap and initialize the maker properties
@@ -77,7 +77,7 @@ for j = 1 : 6
     hold on
     
     if contains(titex{j}, 'TEM')
-        legtxt_tem = '$\overline{d}_\mathrm{pp} = \overline{d}_\mathrm{pp,100}(\overline{d}_\mathrm{a}/100)^{0.5}$';
+        legtxt_tem = '$d_\mathrm{pp} = d_\mathrm{pp,100}(d_\mathrm{a}/100)^{0.5}$';
         da_tem = 100 * (dpp_uc / 17.8).^(1 / 0.5);
         p_tem = plot(da_tem, dpp_uc, 'Color', mc(1,:), 'LineStyle', ':',...
             'LineWidth', 2.5);
@@ -90,10 +90,10 @@ for j = 1 : 6
         % make global legends
         if j == 1
             if i == 1
-                legtxt{i} = strcat('$n_\mathrm{agg}$/$n_\mathrm{agg_0}$ =',...
+                legtxt{i} = strcat('$n_\mathrm{agg}$/$\left(n_\mathrm{agg}\right)_2$ =',...
                     {' '}, num2str(kk(i), '%.0f'));
             else
-                legtxt{i} = strcat('$n_\mathrm{agg}$/$n_\mathrm{agg_0}$ =',...
+                legtxt{i} = strcat('$n_\mathrm{agg}$/$\left(n_\mathrm{agg}\right)_2$ =',...
                     {' '}, num2str(kk(i), '%.2f'));
             end
         end
@@ -121,8 +121,8 @@ lgd = legend(cat(2, [p{1:6,1}, p_tem, p{7,1}])', cat(2, [legtxt{1:6}, legtxt_tem
 lgd.Layout.Tile = 'north';
 lgd.NumColumns = 4;
 
-xlabel(tt, '$\overline{d}_\mathrm{a}$ [nm]', 'FontSize', 20, 'interpreter','latex')
-ylabel(tt, '$\overline{d}_\mathrm{pp}$ [nm]', 'FontSize', 20, 'interpreter', 'latex')
+xlabel(tt, '$d_\mathrm{a}$ [nm]', 'FontSize', 20, 'interpreter','latex')
+ylabel(tt, '$d_\mathrm{pp}$ [nm]', 'FontSize', 20, 'interpreter', 'latex')
 
 end
 

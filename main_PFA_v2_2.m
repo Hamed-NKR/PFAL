@@ -456,7 +456,7 @@ if (kkk <= n_kk) && (strcmp(opts2.savelast, 'on'))
     kkk = kkk + 1;
 end
 
-% Remobe the unused cells and update the dataset number
+% Remove the unused cells and update the dataset number
 if kkk <= n_kk
     parsdata(kkk + 1 : end).dpp = [];
     parsdata(kkk + 1 : end).dpp_g = [];

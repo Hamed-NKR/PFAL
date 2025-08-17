@@ -1,0 +1,17 @@
+Name            Value           Unit            Description
+-------------------------------------------------------------------------------------------------------------------------------------------
+volf			1e-3		[-]		Particle volume fraction (give zero or negative if you prefer to manually adjust the domain size)
+dom_size(1)	5e-6		[m]		Computational domain length (this and the next two parameters will be automatically calculated if volf is set to a positive value)
+dom_size(2)	5e-6		[m]		Computational domain width
+dom_size(3)	5e-6		[m]		Computational domain height
+n_par		3000		[-]		Total number of initial particles
+n_pp(1)		1		[-]		Mean number of primaries within the aggregates
+n_pp(2)		0		[-]		Standard deviation of primary particle numbers within the aggregates
+d_pp(1)		2e-8		[m]		Global geometric mean size of primaries
+d_pp(2)		1.3		[m]		Geometric standard deviation of primary particle size variations between the aggregates
+d_pp(3)		0		[m]		Geometric standard deviation of primary particles size variations within the aggregates
+temp_f		1700		[k]		Flow temperature 
+v_f(1)		0		[m/s]		Flow x velcoity 
+v_f(2)		0		[m/s]		Flow y velocity 
+v_f(3)		0		[m/s]		Flow z velocity 
+p_f		1e5		[pa]		Flow pressure 

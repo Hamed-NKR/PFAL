@@ -88,6 +88,7 @@ else
     pars.rho = rho;
     pars.m = m;
     pars.dm = dm;
+    if strcmp(opts.mtd, 'interp'); pars.da = da; end
     pars.tau = tau;
     pars.f = f;
     pars.delt = delt;

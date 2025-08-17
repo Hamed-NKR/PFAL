@@ -48,14 +48,14 @@ end
 if ~exist('rsl_samp', 'var') || isempty(rsl_samp)
     rsl_samp = 1e4;
 elseif rsl_samp < 1e2
-    error('Spatial resolution too low! (better be >= 100)')
+    warning('Spatial resolution too low! (better be >= 100)')
 end
 
 % Determining the averaging resolution if missing
 if ~exist('rsl_avg', 'var') || isempty(rsl_avg)
     rsl_avg = 20;
 elseif rsl_avg < 5
-    error('Angular resolution too low! (better be >= 10)')
+    warning('Angular resolution too low! (better be >= 10)')
 end
 jj = round(1 + (rsl_avg - 1) .* (0 : 1/3 : 1)'); % Indices of angles to...
 % ...be plotted

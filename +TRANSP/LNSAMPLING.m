@@ -27,7 +27,7 @@ function [d, ind, fn, fn0, h] = LNSAMPLING(d0, mu_d, sigma_d, n_agg,...
 n_agg0 = length(d0); % initial number of aggregates
 
 % get the size range
-if isempty(del_d)
+if ~exist('del_d', 'var') || isempty(del_d)
     [del_d(1), del_d(2)] = bounds(d0);
 else
     del_d = sort(del_d(1:2));

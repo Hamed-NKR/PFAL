@@ -53,8 +53,8 @@ mc(6,:) = [236,230,61] / 255;
 ms = [25, 25, 25, 45, 27.5, 55]; % Marker sizes
 mt = {'o', '^', 'v', 's', 'd', 'p'}; % Marker types
 
-titex = {strcat('(a) $\sigma_\mathrm{ens|_i}$ =', {' '}, num2str(sigmapp_g(1), '%.1f')),...
-    strcat('(b) $\sigma_\mathrm{ens|_i}$ =', {' '}, num2str(sigmapp_g(2), '%.1f'))}; % titles for subplots
+titex = {strcat('(a) $\left(\gamma_\mathrm{pp}\right)_1$ =', {' '}, num2str(sigmapp_g(1), '%.1f')),...
+    strcat('(b) $\left(\gamma_\mathrm{pp}\right)_1$ =', {' '}, num2str(sigmapp_g(2), '%.1f'))}; % titles for subplots
 
 % reproduce the literature benchmark correlations
 % n0 = logspace(0, 10, 1e4);
@@ -97,10 +97,10 @@ for j = 1 : 2
         
         if j == 1
             if i == 1
-                legtxt{i} = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+                legtxt{i} = strcat('$n_\mathrm{agg}/\left(n_\mathrm{agg}\right)_2$ =',...
                     {' '}, num2str(t_id(i), '%.0f'));
             else
-                legtxt{i} = strcat('$n_\mathrm{agg}/n_\mathrm{agg_0}$ =',...
+                legtxt{i} = strcat('$n_\mathrm{agg}/\left(n_\mathrm{agg}\right)_2$ =',...
                     {' '}, num2str(t_id(i), '%.2f'));
             end
         end
@@ -114,12 +114,12 @@ for j = 1 : 2
     xlim([4, 1e4])
     ylim([0.54, 0.92])
     
-    title(titex{j}, 'FontSize', 22, 'interpreter','latex')
+    title(titex{j}, 'FontSize', 20, 'interpreter','latex')
 end
 
 % set general plot's properties
 xlabel(tt, '$n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 20)
-ylabel(tt, '$\hat{\overline{A}}_\mathrm{agg}$ [-]', 'interpreter', 'latex', 'FontSize', 20)
+ylabel(tt, '$A_\mathrm{agg} / A_\mathrm{pp} n_\mathrm{pp}$ [-]', 'interpreter', 'latex', 'FontSize', 20)
 lgd = legend(cat(2, p{:,1})', cat(2, legtxt{:})', 'interpreter', 'latex',...
     'FontSize', 16, 'Orientation', 'horizontal', 'NumColumns', 4);
 lgd.Layout.Tile = 'north';    

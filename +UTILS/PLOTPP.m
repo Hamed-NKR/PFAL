@@ -37,6 +37,11 @@ if ismember(opts.cc, {'OFF', 'Off', 'off'}) || ~exist('id_agg', 'var') ||...
     id_agg = ones(n_pp,1);
 end
 
+% Setting the location of colormaps to choose for painting a uniform...
+% ...aggregates
+if ~isfield(opts, 'cloc'); opts.cloc = []; end
+if isempty(opts.cloc); opts.cloc = 0.1; end
+
 ids = unique(id_agg); % unique agg ids existing in the population
 n_agg = length(ids); % number of aggs existing
 
@@ -46,7 +51,7 @@ if n_agg > 1
     cm = opts.cm(ii,:);
     cm = flip(cm,1);
 else
-    cm = opts.cm(end - round(0.25 * length(opts.cm)),:);
+    cm = opts.cm(end - round(opts.cloc * length(opts.cm)),:);
 end
 
 % Plotting aggregates
