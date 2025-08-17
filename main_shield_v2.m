@@ -38,7 +38,7 @@ fname_in = 'Post_LD2-25NOV24';
 n_shield = 64;
 
 % Screening method: 'opaque' | 'transparent' | 'semitransparent'
-method = 'transparent';
+method = 'opaque';
 
 % Options
 opts.chunkSize = 512;   % tune to fit RAM/CPU; memory ~ chunkSize * n_shield booleans
