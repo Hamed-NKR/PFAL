@@ -6,8 +6,8 @@ close all
 %% Load scaled first-stage LD aggregates %%
 
 % address of data library to be imported
-fdir = 'D:\Hamed\CND\PhD\My Articles\DLCA2\mainscatter_sigmapp13\FLAT';
-fname = 'FLAT-27NOV24';
+fdir = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\Scatter';
+fname = 'Pre_LD2_Scatter___25_09_25';
 varname = 'pars_out';
 
 % load previously scaled stage 1 aggregate data
@@ -27,7 +27,7 @@ end
 k_max = 1e5; % maximum number of iterations
 
 % assign fractions of aggregates (or times) for second-stage data to be saved
-r_n_agg = [1, 0.3, 0.1, 0.03, 0.01];
+r_n_agg = [1, 0.4, 0.2, 0.1, 0.05];
 
 % resolution of Monte Carlo method for projected area calculation
 n_mc_prj = 1e2;

@@ -7,8 +7,8 @@ warning('off')
 %% Initialize and load second-stage LD aggregates %%
 
 % address of second-stage langevin dynamics data to be imported
-fdir_simul = 'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
-fname_simul = 'LD2-25NOV24';
+fdir_simul = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\Scatter\LD2-25-Sep-2025_Pre_LD2_Scatter___25_09_25';
+fname_simul = 'LD2_25-Sep-2025_13-03-12_Final';
 % fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\FLAT';
 % fname_simul = 'LD2_27-Nov-2024_04-21-58_Final';
 % fdir_simul = 'F:\DLCA2\mainscatter_sigmapp10\SCAT';
