@@ -7,8 +7,10 @@ close all
 
 % address of simulation data to be imported
 
-fdir_simul_13_scat = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\postLD2-25-Sep-2025_13-07-57_LD2_25-Sep-2025_13-03-12_Final';
-fname_simul_13_scat = 'Post_LD2_25-Sep-2025_13-03-12_Final';
+fdir_simul_13_scat = 'D:\Hamed\CND\PhD\Weekly\2025\Week_of_27OCT25\Results\postLD2-31-Oct-2025_11-12-18_LD2_30-Oct-2025_12-50-54_Final';
+fname_simul_13_scat = 'Post_LD2_30-Oct-2025_12-50-54_Final';
+% fdir_simul_13_scat = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\postLD2-25-Sep-2025_13-07-57_LD2_25-Sep-2025_13-03-12_Final';
+% fname_simul_13_scat = 'Post_LD2_25-Sep-2025_13-03-12_Final';
 
 fdir_simul_13_flat = 'D:\Hamed\CND\PhD\Publication\DLCA2\outputs\postLD2-28-Mar-2025_18-36-43_LD2_27-Nov-2024_04-21-58_Final';
 fname_simul_13_flat = 'Post_LD2_27-Nov-2024_04-21-58_Final';
@@ -628,7 +630,7 @@ set(f5, 'color', 'white')
 
 % initialize placholders for plots & legends
 plt5 = cell(5, 1);
-legtxt5 = cell(5, 1);
+% legtxt5 = cell(5, 1);
 
 % plot universal correlation for effective density vs. mobility diameter
 plt5{end} = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...

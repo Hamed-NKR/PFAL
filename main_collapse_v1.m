@@ -6,14 +6,14 @@ close all
 
 % load previously saved aggregate data
 
-% fdir_pars =... % address for folder that contains aggregate coordinate data
-%     'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp10\FLAT';
-% fname_pars = 'FLAT-26NOV24'; % aggregate info filename
-% parsname = 'pars_out'; % variable to load
 fdir_pars =... % address for folder that contains aggregate coordinate data
-    'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
-fname_pars = 'LD2-25NOV24'; % aggregate info filename
-parsname = 'parsdata'; % variable to load
+    'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp10\FLAT';
+fname_pars = 'FLAT-26NOV24'; % aggregate info filename
+parsname = 'pars_out'; % variable to load
+% fdir_pars =... % address for folder that contains aggregate coordinate data
+%     'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
+% fname_pars = 'LD2-25NOV24'; % aggregate info filename
+% parsname = 'parsdata'; % variable to load
 
 fdir_fl =... % address for folder that contains fluid structure data
     'D:\Hamed\CND\PhD\Publication\DLCA2\mainscatter_sigmapp13\SCAT';
@@ -107,7 +107,8 @@ ylabel('$\rho_\mathrm{eff} \mathrm{[kg/m^3]}$', 'interpreter', 'latex',...
 pp0 = pars_in(ind_agg(3,1)).pp{ind_agg(3,2)};
 
 % apply Beeler et al. (2025)'s collapse algorithm
-[pps, n_steps] = PAR.COLAPS_NEW(pp0);
+% [pps, n_steps] = PAR.COLAPS_NEW(pp0);
+[pps, n_steps] = PAR.COLAPS_ORIG(pp0);
 
 % initialize temporal arrays for screening factor (using 3 different...
     % ...calculation methods)
@@ -165,7 +166,7 @@ for kk = 1 : n_steps
     % calculate screening factors for individual primary particles in...
         % ...compacted aggregate
     [spps_i_singleSide{kk}, spps_i_doubleSide{kk},...
-        spps_i_doubleLayer{kk}] = PAR.SHIELD_METHODS(pps{kk});
+        spps_i_doubleLayer{kk}] = DEPOT.SHIELD_METHODS(pps{kk});
     
     % mean screening within each aggregate
     spps_singleSide(kk) = mean(spps_i_singleSide{kk});

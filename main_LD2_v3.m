@@ -6,8 +6,10 @@ close all
 %% Load scaled first-stage LD aggregates %%
 
 % address of data library to be imported
-fdir = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\Scatter';
-fname = 'Pre_LD2_Scatter___25_09_25';
+% fdir = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\Scatter';
+% fname = 'Pre_LD2_Scatter___25_09_25';
+fdir = 'D:\Hamed\CND\PhD\Weekly\2025\Week_of_27OCT25';
+fname = 'BiggerRepo-Scat135-Real1-Frac0055-27OCT25';
 varname = 'pars_out';
 
 % load previously scaled stage 1 aggregate data

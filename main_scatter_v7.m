@@ -41,11 +41,11 @@ gsd_da = 1.74; % geometric standard deviation of ~
 gm_dpp = 16.58; % geometric mean of primary particle diameter distribution
 gsd_dpp = 1.45; % geometric standard deviation of ~
 
-cn_scat = 0.4; % proportion of random aggregates chosen for bivariate sampling
+cn_scat = 0.055; % proportion of random aggregates chosen for bivariate sampling
 
 % address of aggregate library to be imported for scaling and dispersion
-fdir = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation';
-fname = 'DLCA1___gamma_135___25_Sep_2025';
+fdir = 'D:\Hamed\CND\PhD\Weekly\2025\Week_of_20OCT25\LD_Repos';
+fname = 'LD1___gamma_135___27Oct25';
 varname = 'pp0';
 vardir = '';
 
