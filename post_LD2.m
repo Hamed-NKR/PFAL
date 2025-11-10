@@ -8,8 +8,7 @@ warning('off')
 
 % address of second-stage langevin dynamics data to be imported
 fdir_simul = 'D:\Hamed\CND\PhD\Weekly\2025\Week_of_27OCT25\Results\LD2-28-Oct-2025_BiggerRepo-Scat135-Real1-Frac0055-27OCT25';
-fname_simul = ['LD2_30-Oct-2025_12-50-54_Final-+' ...
-    ' 1`12``11                      '];
+fname_simul = 'LD2_30-Oct-2025_12-50-54_Final';
 % fdir_simul = 'D:\Hamed\CND\PhD\Publication\Paper2\Validation\Scatter\LD2-25-Sep-2025_Pre_LD2_Scatter___25_09_25';
 % fname_simul = 'LD2_25-Sep-2025_13-03-12_Final';
 % fdir_simul = 'F:\DLCA2\mainscatter_sigmapp13\FLAT';
