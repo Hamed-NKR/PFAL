@@ -125,7 +125,7 @@ plt_uc_2 = plot(dm_uc, rho_eff_uc, 'Color', [0.4940 0.1840 0.5560],...
     'LineStyle', '-.', 'LineWidth', 3);
 hold on
 
-% appearance configs for plot
+% appearance configs for dpp vs npp subplot
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 12,...
     'TickLength', [0.02 0.02], 'XScale', 'log', 'YScale', 'log')
 xlim([min(dm) max(dm)])
@@ -145,3 +145,4 @@ end
 % legend
 legend(plt_uc_2, 'Olfert $\&$ Rogak (2019)', 'interpreter', 'latex',...
     'FontSize', 12, 'Location', 'northoutside');
+

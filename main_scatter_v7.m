@@ -44,7 +44,7 @@ gsd_dpp = 1.45; % geometric standard deviation of ~
 cn_scat = 0.055; % proportion of random aggregates chosen for bivariate sampling
 
 % address of aggregate library to be imported for scaling and dispersion
-fdir = 'D:\Hamed\CND\PhD\Weekly\2025\Week_of_20OCT25\LD_Repos';
+fdir = 'D:\Hamed\CND\PhD\Weekly\2025\Week_of_27OCT25\LD_Repos';
 fname = 'LD1___gamma_135___27Oct25';
 varname = 'pp0';
 vardir = '';
