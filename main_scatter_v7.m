@@ -36,16 +36,16 @@ buc_inv = @(x) (b0_buc * x) .^ (1 / m_buc); % inverse combined...
     % ...function to get npp from dpp
 
 % metrics of the bivariate size distribution in dpp-da space
-gm_da = 83.22; % geometric mean of projected area diameter distribution
-gsd_da = 1.67; % geometric standard deviation of ~
-gm_dpp = 16.67; % geometric mean of primary particle diameter distribution
-gsd_dpp = 1.22; % geometric standard deviation of ~
+gm_da = 91.96; % geometric mean of projected area diameter distribution
+gsd_da = 1.74; % geometric standard deviation of ~
+gm_dpp = 16.58; % geometric mean of primary particle diameter distribution
+gsd_dpp = 1.45; % geometric standard deviation of ~
 
-cn_scat = 0.5; % proportion of random aggregates chosen for bivariate sampling
+cn_scat = 0.13; % proportion of random aggregates chosen for bivariate sampling
 
 % address of aggregate library to be imported for scaling and dispersion
-fdir = 'D:\HN\DLCA\LIBS';
-fname = 'wsp-sigmapp-13';
+fdir = 'D:\Hamed\CND\PhD\Publication\Paper2\Library_Final\1_35\LD1';
+fname = 'LD1__gamma_1_35__merge';
 varname = 'pp0';
 vardir = '';
 
@@ -69,19 +69,19 @@ load(strcat(fdir, '\', fname, '.mat'), varname)
 % create particle structure  
 pars_raw.pp = eval(strcat(varname, vardir)); % store primary particle info
 
-% correct the structure if necessary
-if logical(nnz(size(pars_raw.pp)))
-    
-    % Convert the pp data into a 1d cell array
-    pars_raw.pp = pars_raw.pp(:);
-    
-    % Remove unused cells
-    pars_raw.pp = pars_raw.pp(~cellfun('isempty', pars_raw.pp));
-    
-    % Merge pp info from different times
-    pars_raw.pp = cat(1, pars_raw.pp{:});
-
-end
+% % correct the structure if necessary
+% if logical(nnz(size(pars_raw.pp)))
+% 
+%     % Convert the pp data into a 1d cell array
+%     pars_raw.pp = pars_raw.pp(:);
+% 
+%     % Remove unused cells
+%     pars_raw.pp = pars_raw.pp(~cellfun('isempty', pars_raw.pp));
+% 
+%     % Merge pp info from different times
+%     pars_raw.pp = cat(1, pars_raw.pp{:});
+% 
+% end
 
 n_agg_raw = length(pars_raw.pp); % number of aggregates
 pars_raw.n = zeros(n_agg_raw,1);
