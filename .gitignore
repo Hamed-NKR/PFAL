@@ -2,3 +2,10 @@
 *.asv
 *.avi
 outputs/
+config/main_scatter_config.local.json
+data/*
+!data/.gitkeep
+!data/main_scatter/
+data/main_scatter/*
+!data/main_scatter/.gitkeep
+.pfal-cache/

@@ -1,0 +1,38 @@
+{
+  "dataset": {
+    "id": "LD1_gamma_1_35_merge",
+    "file": "../data/main_scatter/LD1__gamma_1_35__merge.mat",
+    "variable": "pp0"
+  },
+  "correlation": {
+    "universal": {
+      "D_TEM": 0.35,
+      "dpp100": 17.8,
+      "da_lim_uc": [1.0, 20000.0],
+      "n_da_uc": 10000
+    },
+    "brasil": {
+      "alpha_a": 1.08,
+      "k_a": 1.1,
+      "npp_lim_bc": [0.1, 20000.0],
+      "n_npp_uc": 10000
+    }
+  },
+  "distribution": {
+    "gm_da": 91.96,
+    "gsd_da": 1.74,
+    "gm_dpp": 16.58,
+    "gsd_dpp": 1.45
+  },
+  "sampling": {
+    "cn_scat": 0.13
+  },
+  "projection": {
+    "n_mc": 100,
+    "n_ang": 5
+  },
+  "options": {
+    "opt_scale": "sequential",
+    "opts_nppcor": "off"
+  }
+}
