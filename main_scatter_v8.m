@@ -680,7 +680,7 @@ ci_k_4b = exp(ci_4b(1,:));
 % 95% ci error bars
 dci_D_4b = max(ci_D_4b) - D_4b;
 dcip_k_4b = max(ci_k_4b) - k_4b;
-dcin_k_4b = k_3b - min(ci_k_4b);
+dcin_k_4b = k_4b - min(ci_k_4b);
 
 % generate the fit data
 dpp_fit4b = k_4b * (da_uc.^D_4b);
