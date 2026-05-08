@@ -9,3 +9,4 @@ data/*
 data/main_scatter/*
 !data/main_scatter/.gitkeep
 .pfal-cache/
+data_publication_staging/
