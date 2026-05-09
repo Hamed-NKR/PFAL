@@ -580,6 +580,18 @@ mu_sigmapp_out = mean(pars_out.dpp_g(:,2)); % arithmetic mean of...
 sd_sigmapp_out = std(pars_out.dpp_g(:,2)); % arithmetic standard deviation of...
     % ...geomtric standard deviation of primary particle size within aggregates
 
+%% Export scaled aggregates for LD2 %%
+
+% Store the scaled aggregate library with the variable name expected by
+% main_LD2_v3. The fixed path is also the default input in the LD2 config.
+repo_dir = fileparts(mfilename('fullpath'));
+dir_ld2_data = fullfile(repo_dir, 'data', 'main_ld2');
+if ~isfolder(dir_ld2_data)
+    mkdir(dir_ld2_data)
+end
+
+save(fullfile(dir_ld2_data, 'scaled_aggs_for_LD2.mat'), 'pars_out', '-v7.3')
+
 %% Plot scaled aggregates
 
 % initialize figure
@@ -730,19 +742,20 @@ end
 
 %% Export plots %%
 
-% Create the output folder on demand so plot exports do not depend on a
+% Create the results folder on demand so plot exports do not depend on a
 % manually prepared directory in the working tree.
-if ~isfolder('outputs')
-    mkdir('outputs')
+dir_scatter_results = fullfile(repo_dir, 'results', 'main_scatter');
+if ~isfolder(dir_scatter_results)
+    mkdir(dir_scatter_results)
 end
 
-exportgraphics(f1, 'outputs\raw.png',...
+exportgraphics(f1, fullfile(dir_scatter_results, 'raw.png'),...
     'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)
-exportgraphics(f2, 'outputs\seeds_initial.png',...
+exportgraphics(f2, fullfile(dir_scatter_results, 'seeds_initial.png'),...
     'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)
-exportgraphics(f3, 'outputs\seeds_corrected.png',...
+exportgraphics(f3, fullfile(dir_scatter_results, 'seeds_corrected.png'),...
     'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)
-exportgraphics(f4, 'outputs\scaled.png',...
+exportgraphics(f4, fullfile(dir_scatter_results, 'scaled.png'),...
     'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)
-exportgraphics(f5, 'outputs\render.png',...
+exportgraphics(f5, fullfile(dir_scatter_results, 'render.png'),...
     'BackgroundColor','none', 'ContentType','vector', 'Resolution', 300)

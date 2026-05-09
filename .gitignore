@@ -2,11 +2,16 @@
 *.asv
 *.avi
 outputs/
+results/
 config/main_scatter_config.local*.json
+config/main_ld2_config.local*.json
 data/*
 !data/.gitkeep
 !data/main_scatter/
 data/main_scatter/*
 !data/main_scatter/.gitkeep
+!data/main_ld2/
+data/main_ld2/*
+!data/main_ld2/.gitkeep
 .pfal-cache/
 data_publication_staging/
