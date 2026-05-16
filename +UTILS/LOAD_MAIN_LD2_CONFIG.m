@@ -1,13 +1,20 @@
 function cfg = LOAD_MAIN_LD2_CONFIG(config_path)
 %LOAD_MAIN_LD2_CONFIG Load and validate the main_LD2 JSON config.
-%   CFG = UTILS.LOAD_MAIN_LD2_CONFIG reads the local JSON config for
-%   main_LD2_v3 and returns a validated MATLAB struct.
+%   CFG = UTILS.LOAD_MAIN_LD2_CONFIG reads the config path from the
+%   PFAL_MAIN_LD2_CONFIG environment variable and returns a validated
+%   MATLAB struct.
 %
 %   CFG = UTILS.LOAD_MAIN_LD2_CONFIG(CONFIG_PATH) reads a specific config
-%   file instead of the default local file.
+%   file instead of the environment-selected file.
 
 if nargin < 1 || isempty(config_path)
-    config_path = fullfile(repo_root(), 'config', 'main_ld2_config.local.json');
+    config_path = getenv('PFAL_MAIN_LD2_CONFIG');
+    if isempty(config_path)
+        error('PFAL:LOAD_MAIN_LD2_CONFIG:MissingConfigSelection', ...
+            ['LD2 config selection is required. Set PFAL_MAIN_LD2_CONFIG ' ...
+            'to config/main_ld2_from_main_scatter_config.local.json or ' ...
+            'config/main_ld2_from_main_scale_config.local.json, or pass an explicit config path.']);
+    end
 end
 
 config_path = char(config_path);
@@ -15,7 +22,8 @@ config_path = char(config_path);
 if ~isfile(config_path)
     error('PFAL:LOAD_MAIN_LD2_CONFIG:MissingConfig', ...
         ['LD2 config not found: %s\n' ...
-        'Create it from config/main_ld2_config.example.json and fill in the local dataset path.'], ...
+        'Create it from config/main_ld2_from_main_scatter_config.example.json or ' ...
+        'config/main_ld2_from_main_scale_config.example.json and fill in the local dataset path.'], ...
         config_path);
 end
 

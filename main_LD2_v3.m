@@ -16,7 +16,8 @@ cfg_projection = cfg_ld2.projection;
 cfg_transport = cfg_ld2.transport;
 
 % Load previously scaled first-stage aggregates using the variable declared
-% in the config file. main_scatter_v8 writes this file as pars_out.
+% in the source-specific LD2 config. main_scatter_v8 and main_scale_v2 both
+% write this payload as pars_out.
 [pars_LD2, dataset_src] = UTILS.LOAD_MAIN_LD2_DATASET(cfg_dataset);
 
 if ~isfield(pars_LD2, 'pp')

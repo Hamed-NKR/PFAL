@@ -582,15 +582,16 @@ sd_sigmapp_out = std(pars_out.dpp_g(:,2)); % arithmetic standard deviation of...
 
 %% Export scaled aggregates for LD2 %%
 
-% Store the scaled aggregate library with the variable name expected by
-% main_LD2_v3. The fixed path is also the default input in the LD2 config.
+% Store the scaled aggregate library with source-specific naming so scatter
+% and scale outputs can coexist without overwriting one another.
 repo_dir = fileparts(mfilename('fullpath'));
-dir_ld2_data = fullfile(repo_dir, 'data', 'main_ld2');
-if ~isfolder(dir_ld2_data)
-    mkdir(dir_ld2_data)
+dir_scatter_data = fullfile(repo_dir, 'data', 'main_scatter');
+if ~isfolder(dir_scatter_data)
+    mkdir(dir_scatter_data)
 end
 
-save(fullfile(dir_ld2_data, 'scaled_aggs_for_LD2.mat'), 'pars_out', '-v7.3')
+save(fullfile(dir_scatter_data, 'scaled_aggs_for_LD2_from_main_scatter.mat'), ...
+    'pars_out', '-v7.3')
 
 %% Plot scaled aggregates
 

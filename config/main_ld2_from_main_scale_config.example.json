@@ -1,17 +1,17 @@
 {
   "dataset": {
-    "id": "scaled_aggs_for_LD2",
-    "file": "../data/main_ld2/scaled_aggs_for_LD2.mat",
+    "id": "scaled_aggs_for_LD2_from_main_scale",
+    "file": "../data/main_scale/scaled_aggs_for_LD2_from_main_scale.mat",
     "url": "",
     "doi": "",
     "sha256": "",
     "variable": "pars_out"
   },
   "results": {
-    "root": "../results/main_ld2",
-    "run_label": "LD2__scaled_aggs_for_LD2",
-    "checkpoint_prefix": "LD2__checkpoint",
-    "final_prefix": "LD2__final"
+    "root": "../results/main_ld2_from_main_scale",
+    "run_label": "LD2__scaled_aggs_for_LD2_from_main_scale",
+    "checkpoint_prefix": "LD2__from_main_scale__checkpoint",
+    "final_prefix": "LD2__from_main_scale__final"
   },
   "simulation": {
     "k_max": 1000000,

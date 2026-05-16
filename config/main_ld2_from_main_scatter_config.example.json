@@ -1,0 +1,132 @@
+{
+  "dataset": {
+    "id": "scaled_aggs_for_LD2_from_main_scatter",
+    "file": "../data/main_scatter/scaled_aggs_for_LD2_from_main_scatter.mat",
+    "url": "",
+    "doi": "",
+    "sha256": "",
+    "variable": "pars_out"
+  },
+  "results": {
+    "root": "../results/main_ld2_from_main_scatter",
+    "run_label": "LD2__scaled_aggs_for_LD2_from_main_scatter",
+    "checkpoint_prefix": "LD2__from_main_scatter__checkpoint",
+    "final_prefix": "LD2__from_main_scatter__final"
+  },
+  "simulation": {
+    "k_max": 1000000,
+    "r_n_agg": [1.0, 0.4, 0.2, 0.1, 0.05],
+    "checkpoint_interval": 1000
+  },
+  "projection": {
+    "n_mc": 100,
+    "n_ang": 5
+  },
+  "transport": {
+    "user_defined": [
+      {
+        "name": "volf",
+        "value": 1.0e-4,
+        "unit": "[-]",
+        "description": "Particle volume fraction (give zero or negative if you prefer to manually adjust the domain size)"
+      },
+      {
+        "name": "dom_size(1)",
+        "value": 5.0e-6,
+        "unit": "[m]",
+        "description": "Computational domain length (this and the next two parameters will be automatically calculated if volf is set to a positive value)"
+      },
+      {
+        "name": "dom_size(2)",
+        "value": 5.0e-6,
+        "unit": "[m]",
+        "description": "Computational domain width"
+      },
+      {
+        "name": "dom_size(3)",
+        "value": 5.0e-6,
+        "unit": "[m]",
+        "description": "Computational domain height"
+      },
+      {
+        "name": "n_par",
+        "value": 10000,
+        "unit": "[-]",
+        "description": "Total number of initial particles"
+      },
+      {
+        "name": "n_pp(1)",
+        "value": 1,
+        "unit": "[-]",
+        "description": "Mean number of primaries within the aggregates"
+      },
+      {
+        "name": "n_pp(2)",
+        "value": 0,
+        "unit": "[-]",
+        "description": "Standard deviation of primary particle numbers within the aggregates"
+      },
+      {
+        "name": "d_pp(1)",
+        "value": 1.5e-8,
+        "unit": "[m]",
+        "description": "Global geometric mean size of primaries"
+      },
+      {
+        "name": "d_pp(2)",
+        "value": 1.35,
+        "unit": "[m]",
+        "description": "Geometric standard deviation of primary particle size variations between the aggregates"
+      },
+      {
+        "name": "d_pp(3)",
+        "value": 0,
+        "unit": "[m]",
+        "description": "Geometric standard deviation of primary particle size variations within the aggregates"
+      },
+      {
+        "name": "temp_f",
+        "value": 298,
+        "unit": "[k]",
+        "description": "Flow temperature"
+      },
+      {
+        "name": "v_f(1)",
+        "value": 0,
+        "unit": "[m/s]",
+        "description": "Flow x velocity"
+      },
+      {
+        "name": "v_f(2)",
+        "value": 0,
+        "unit": "[m/s]",
+        "description": "Flow y velocity"
+      },
+      {
+        "name": "v_f(3)",
+        "value": 0,
+        "unit": "[m/s]",
+        "description": "Flow z velocity"
+      },
+      {
+        "name": "p_f",
+        "value": 1.0e5,
+        "unit": "[pa]",
+        "description": "Flow pressure"
+      }
+    ],
+    "fluid_options": {
+      "amb": "room"
+    },
+    "mobility_options": {
+      "c_dt": 100,
+      "mtd": "interp"
+    },
+    "location_options": {
+      "vf": "on"
+    },
+    "growth_options": {
+      "indupdate": "off"
+    }
+  }
+}
