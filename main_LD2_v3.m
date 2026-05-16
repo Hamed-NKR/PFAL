@@ -65,6 +65,8 @@ end
 
 % Build the fluid and particle parameter tables from the JSON config.
 [params_ud, params_const] = UTILS.LD2_PARAMS_FROM_CONFIG(cfg_transport.user_defined);
+fprintf('LD2 config: %s\n', cfg_ld2.config_file);
+fprintf('LD2 requested volume fraction: %.6g\n', params_ud.Value(1));
 
 % make the fluid structure
 [~, fl] = TRANSP.INIT_DOM(params_ud, params_const);
@@ -80,6 +82,8 @@ pars_LD2 = TRANSP.MOBIL(pars_LD2, fl, params_const, opts_mobil);
 % Assign random initial locations and velocities to aggregates
 opts_loc = cfg_transport.location_options;
 [pars_LD2, params_ud] = PAR.INIT_LOC(pars_LD2, params_ud, [], opts_loc);
+fprintf('LD2 effective domain size after volume-fraction adjustment: [%.6g %.6g %.6g] m\n', ...
+    params_ud.Value(2), params_ud.Value(3), params_ud.Value(4));
 pars_LD2.v = PAR.INIT_VEL(pars_LD2.pp, pars_LD2.n, fl.temp, params_const);
 
 opts_grow = cfg_transport.growth_options;

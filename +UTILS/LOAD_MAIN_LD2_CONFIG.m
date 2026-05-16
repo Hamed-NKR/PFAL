@@ -27,6 +27,7 @@ catch err
 end
 
 config_dir = fileparts(config_path);
+cfg.config_file = config_path;
 
 cfg.dataset = require_struct_field(cfg, 'dataset', 'dataset section');
 cfg.dataset.id = require_text_field(cfg.dataset, 'id', 'dataset.id');
