@@ -1,7 +1,7 @@
 {
   "dataset": {
     "id": "LD1_gamma_1_35_merge",
-    "file": "../data/main_scatter/LD1__gamma_1_35__merge.mat",
+    "file": "../../data/main_scale/LD1__gamma_1_35__merge.mat",
     "url": "",
     "doi": "",
     "sha256": "",
@@ -28,14 +28,12 @@
     "gsd_dpp": 1.45
   },
   "sampling": {
-    "cn_scat": 0.13
+    "cn_scale": 0.13,
+    "n_bin_filter": 20
   },
   "projection": {
     "n_mc": 100,
     "n_ang": 5
   },
-  "options": {
-    "opt_scale": "sequential",
-    "opts_nppcor": "off"
-  }
+  "options": {}
 }

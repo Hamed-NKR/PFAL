@@ -7,7 +7,8 @@ function cfg = LOAD_MAIN_SCATTER_CONFIG(config_path)
 %   config file instead of the default local file.
 
 if nargin < 1 || isempty(config_path)
-    config_path = fullfile(repo_root(), 'config', 'main_scatter_config.local.json');
+    config_path = fullfile(repo_root(), 'config', 'main_scatter', ...
+        'main_scatter_config.local.json');
 end
 
 config_path = char(config_path);
@@ -17,7 +18,7 @@ config_path = char(config_path);
 if ~isfile(config_path)
     error('PFAL:LOAD_MAIN_SCATTER_CONFIG:MissingConfig', ...
         ['Scatter config not found: %s\n' ...
-        'Create it from config/main_scatter_config.example.json and fill in the local dataset path.'], ...
+        'Create it from config/main_scatter/main_scatter_config.example.json and fill in the local dataset path.'], ...
         config_path);
 end
 

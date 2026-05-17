@@ -64,13 +64,11 @@ if ~isfield(pars_LD2, 'dg')
     pars_LD2 = PAR.SIZING(pars_LD2);
 end
 
-% Build the fluid and particle parameter tables from the JSON config.
-[params_ud, params_const] = UTILS.LD2_PARAMS_FROM_CONFIG(cfg_transport.user_defined);
+% Build the fluid and domain parameter tables from the JSON config.
+[params_domain, params_const, fl] = UTILS.LD2_PARAMS_FROM_CONFIG( ...
+    cfg_transport.domain, cfg_transport.fluid);
 fprintf('LD2 config: %s\n', cfg_ld2.config_file);
-fprintf('LD2 requested volume fraction: %.6g\n', params_ud.Value(1));
-
-% make the fluid structure
-[~, fl] = TRANSP.INIT_DOM(params_ud, params_const);
+fprintf('LD2 requested volume fraction: %.6g\n', params_domain.Value(1));
 
 % apply the configured ambient fluid property model
 opts_fl = cfg_transport.fluid_options;
@@ -82,9 +80,10 @@ pars_LD2 = TRANSP.MOBIL(pars_LD2, fl, params_const, opts_mobil);
 
 % Assign random initial locations and velocities to aggregates
 opts_loc = cfg_transport.location_options;
-[pars_LD2, params_ud] = PAR.INIT_LOC(pars_LD2, params_ud, [], opts_loc);
+[pars_LD2, params_domain] = PAR.INIT_LOC(pars_LD2, params_domain, [], opts_loc);
+fl.size = params_domain.Value(2:4);
 fprintf('LD2 effective domain size after volume-fraction adjustment: [%.6g %.6g %.6g] m\n', ...
-    params_ud.Value(2), params_ud.Value(3), params_ud.Value(4));
+    params_domain.Value(2), params_domain.Value(3), params_domain.Value(4));
 pars_LD2.v = PAR.INIT_VEL(pars_LD2.pp, pars_LD2.n, fl.temp, params_const);
 
 opts_grow = cfg_transport.growth_options;
@@ -156,7 +155,7 @@ while (k <= k_max) && (ind_dat <= n_dat) && (length(pars_LD2.n) > 1)
     [pars_LD2, delt] = TRANSP.MARCH(pars_LD2, fl, params_const);
 
     % apply periodic boundary conditions
-    pars_LD2 = TRANSP.PBC(params_ud.Value(2:4), pars_LD2);
+    pars_LD2 = TRANSP.PBC(params_domain.Value(2:4), pars_LD2);
 
     % join colliding particles
     pars_LD2 = COL.GROW(pars_LD2, opts_grow);
