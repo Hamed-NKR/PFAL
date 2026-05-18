@@ -5,10 +5,14 @@ outputs/
 results/
 config/main_scatter/main_scatter_config.local*.json
 config/main_scale/main_scale_config.local*.json
+config/main_ld1/main_ld1_config.local*.json
 config/main_ld2/main_ld2_from_main_scatter_config.local*.json
 config/main_ld2/main_ld2_from_main_scale_config.local*.json
 data/*
 !data/.gitkeep
+!data/main_ld1/
+data/main_ld1/*
+!data/main_ld1/.gitkeep
 !data/main_scatter/
 data/main_scatter/*
 !data/main_scatter/.gitkeep

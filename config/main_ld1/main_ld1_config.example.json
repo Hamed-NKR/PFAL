@@ -1,0 +1,54 @@
+{
+  "results": {
+    "root": "../../data/main_ld1",
+    "library_file": "ld1_aggregate_library.mat",
+    "run_label": "LD1__aggregate_library"
+  },
+  "simulation": {
+    "n_temporal": 10,
+    "n_trial": 3,
+    "primary_size_gsd_between_trials": 1.4,
+    "npp_min": 10,
+    "npp_max": 1000,
+    "j_max": 30000,
+    "rng_seed": []
+  },
+  "projection": {
+    "n_mc": 100,
+    "n_ang": 5,
+    "options": {
+      "tbar": "off"
+    }
+  },
+  "transport": {
+    "domain": {
+      "volume_fraction": 0.001,
+      "size": [0.000005, 0.000005, 0.000005]
+    },
+    "particles": {
+      "n_par": 10000,
+      "n_pp_mean": 1,
+      "n_pp_std": 0,
+      "d_pp_gm": 0.000000015,
+      "d_pp_gsd_between_aggregates": 1.35,
+      "d_pp_gsd_within_aggregates": 0
+    },
+    "fluid": {
+      "temperature": 1700,
+      "velocity": [0, 0, 0],
+      "pressure": 100000
+    },
+    "fluid_options": {
+      "amb": "flame"
+    },
+    "mobility_options": {
+      "mtd": "continuum",
+      "c_dt": 1000
+    },
+    "location_options": {
+      "vf": "off",
+      "vf_type": "pp"
+    },
+    "growth_options": {}
+  }
+}

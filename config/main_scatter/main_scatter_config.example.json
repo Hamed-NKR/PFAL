@@ -1,7 +1,7 @@
 {
   "dataset": {
-    "id": "LD1_gamma_1_35_merge",
-    "file": "../../data/main_scatter/LD1__gamma_1_35__merge.mat",
+    "id": "ld1_aggregate_library",
+    "file": "../../data/main_ld1/ld1_aggregate_library.mat",
     "url": "",
     "doi": "",
     "sha256": "",
