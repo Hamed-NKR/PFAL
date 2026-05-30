@@ -32,6 +32,8 @@ load(checkpoint_path);
 
 k = k + 1;
 
+fprintf('\n');
+
 while (k <= k_max) && (ind_dat <= n_dat) && (length(pars_LD2.n) > 1)
     % check criteria to stop simulations
 

@@ -80,7 +80,7 @@ if pct==0; f_back = 0; end
 
 %-- Other parameters ----%
 n_dot = 20;  % number of elements in progress bar
-n_xtra = 10;  % padded elements  for percent / general spacing
+n_xtra = 13;  % padded elements for percent / general spacing
 n_frac = 2 * length(num2str(i(2))) + 1;  % number of extra elements due to fraction
 n_str = n_dot + n_xtra + n_frac;
 %-------------------------------------------------------------------------%
@@ -92,8 +92,8 @@ else; str_back = ''; end  % if initializing textbar
 
 
 % Format percentage leading bar.
-str_p00 = num2str(100 * pct, '%.0f');   % formatted percent
-str_p00 = [repmat(' ', [1, 3-length(str_p00)]), str_p00];  % pad with necessary spaces
+str_p00 = num2str(100 * pct, '%.2f');   % formatted percent
+str_p00 = [repmat(' ', [1, 6-length(str_p00)]), str_p00];  % pad with necessary spaces
 
 
 % Format text for middle of the bar.
@@ -127,4 +127,3 @@ end
 %-------------------------------------------------------------------------%
 
 end
-
