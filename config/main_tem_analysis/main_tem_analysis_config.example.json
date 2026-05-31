@@ -1,0 +1,74 @@
+{
+  "analysis": {
+    "coverage_threshold": 1.1,
+    "logistic_bandwidth": 0.05,
+    "primary_area_start_row": 2,
+    "random_resample_count": 5000,
+    "random_seed": 1
+  },
+  "outputs": {
+    "data_root": "../../data/main_tem_analysis",
+    "results_root": "../../results/main_tem_analysis",
+    "mat_file": "tem_analysis_results.mat",
+    "model_inputs_csv": "model_inputs.csv",
+    "summary_csv": "summary_table.csv"
+  },
+  "plots": {
+    "enabled": true,
+    "visible": "on",
+    "export": true,
+    "format": "png",
+    "resolution": 300,
+    "save_figures": false,
+    "axis_overrides": {}
+  },
+  "entries": [
+    {
+      "id": "2024_08_19_low_agglomeration",
+      "label": "Low agglomeration",
+      "entry_type": "low_agglomeration",
+      "entry_dir": "../../data/tem_analysis/2024-08-19_low_agglomeration",
+      "aggregate": {
+        "file": "atems_aggregate_metrics/19AUG24_LAL_End_Slider.mat",
+        "variable": "Aggs"
+      },
+      "primary_particles": {
+        "folder": "imagej_primary_particle_metrics",
+        "file_pattern": "PFA_ET+NIT_LAL_19AUG24_End_%d.csv",
+        "area_column": "Area"
+      },
+      "aggregate_ids": {
+        "start": 1,
+        "end": 64
+      },
+      "plot": {
+        "marker": "^"
+      },
+      "include_in_model_inputs": true,
+      "include_in_publication_plots": true,
+      "include_in_hybridity_scatter": true
+    },
+    {
+      "id": "2025_02_06_high_agglomeration",
+      "label": "High agglomeration",
+      "entry_type": "high_agglomeration",
+      "entry_dir": "../../data/tem_analysis/2025-02-06_high_agglomeration",
+      "aggregate": {
+        "file": "atems_aggregate_metrics/06FEB25_ExAglom_Slider.mat",
+        "variable": "Aggs"
+      },
+      "primary_particles": {
+        "folder": "imagej_primary_particle_metrics",
+        "file_pattern": "PFA_ET+NIT_06FEB25_EXAGLOM_%d.csv",
+        "area_column": "Area"
+      },
+      "aggregate_ids": [1, 5, 9, 10, 12, 13, 14, 15, 16, 17, 18, 21, 22, 25, 29],
+      "plot": {
+        "marker": "s"
+      },
+      "include_in_model_inputs": true,
+      "include_in_publication_plots": true,
+      "include_in_hybridity_scatter": true
+    }
+  ]
+}
