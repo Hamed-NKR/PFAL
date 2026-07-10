@@ -35,7 +35,7 @@
     "n_ang": 5
   },
   "options": {
-    "opt_scale": "sequential",
+    "opt_scale": "bivariate",
     "opts_nppcor": "off"
   }
 }

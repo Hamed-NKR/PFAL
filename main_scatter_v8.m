@@ -3,6 +3,11 @@ clear
 close all
 warning('off')
 
+% Production scatter-scaling workflow for experimentally constrained LD2
+% initial conditions. The default paper/thesis method is
+% options.opt_scale = "bivariate"; "sequential" and "ideal" are retained as
+% explicit sensitivity modes.
+
 %% Initialize and define key parameters %%
 
 % Load the configurable inputs for the scatter workflow from the local JSON
@@ -62,13 +67,15 @@ cn_scat = cfg_sampling.cn_scat; % fraction of aggregates chosen for bivariate sa
 n_mc = cfg_projection.n_mc; % Monte Carlo samples used for projected area
 n_ang = cfg_projection.n_ang; % number of viewing angles used for projection averaging
 
-opt_scale = cfg_options.opt_scale; % set to 'bivariate' to generate a 2d...
-    % ...distribution of data in one step or set to 'sequential' to...
-    % ...first distribute around da and then around dpp. Also, set to...
-    % ...ideal to exclude any noise
+opt_scale = cfg_options.opt_scale; % 'bivariate', 'sequential', or 'ideal'
+if strcmp(opt_scale, 'sequential')
+    warning('on', 'PFAL:main_scatter_v8:SequentialScaleMode')
+    warning('PFAL:main_scatter_v8:SequentialScaleMode', ...
+        ['Scatter scaling is running in sequential mode. This is not ', ...
+        'the thesis/paper bivariate initialization method.'])
+end
 
-opts_nppcor = cfg_options.opts_nppcor; % round the properties for the effect of number of...
-    % ...primary particles within an aggregate
+opts_nppcor = cfg_options.opts_nppcor; % 'on' rounds primary-particle counts
 
 %% Raw data against the Brasil's and universal correlations %%
 
@@ -100,8 +107,7 @@ for i = 1 : n_agg_raw
 end
 pars_raw = PAR.SIZING(pars_raw); % populate dg, da, dpp, and related size metrics
 
-% The resolved path and variable metadata are not used beyond this point.
-clear cfg_scatter cfg_dataset cfg_uc cfg_bc cfg_dist cfg_sampling cfg_projection cfg_options
+% Keep the resolved config structures available for output provenance.
 
 % initialize figure for raw data vs. correlations
 f1 = figure(1);
@@ -167,7 +173,7 @@ lgd1 = legend(cat(2, plt1a_bc, plt1b_uc, plt1a_raw),...
     'orientation', 'horizontal', 'NumColumns', 3);
 lgd1.Layout.Tile = 'south';
 
-%% Generate random (log-log) Gaussian noise around the universal correlation %%
+%% Generate target scatter seeds in dpp-da space %%
 
 % number of random points used for bivariate aggregate selection
 n_scat = round(cn_scat * length(pars_raw.n));
@@ -175,60 +181,72 @@ n_scat = round(cn_scat * length(pars_raw.n));
 % mean and standard deviation in log-log space
 mu_log_2d = [log(gm_da), log(gm_dpp)];
 sigma_log_2d = [log(gsd_da), log(gsd_dpp)];
+rho = NaN;
+sigma_cov = [];
+dist_log_2d = [];
+dist_scat = [];
 
 switch(opt_scale)
 
-    case {'bivariate', 'Bivariate', 'BIVARIATE'}
+    case 'bivariate'
     
-        % estimated bivariate correlation
+        % Choose the log-space correlation coefficient so the conditional
+        % mean slope of log(dpp) versus log(da) is D_TEM.
         rho = D_TEM * (sigma_log_2d(1) / sigma_log_2d(2));
         
         % covariance matrix in log-log space
         sigma_cov = [sigma_log_2d(1)^2, rho * sigma_log_2d(1) * sigma_log_2d(2); 
             rho * sigma_log_2d(1) * sigma_log_2d(2), sigma_log_2d(2)^2];
         
-        % generate bivariate guassian distribution
+        % Generate bivariate Gaussian seeds in log space.
         dist_log_2d = mvnrnd(mu_log_2d, sigma_cov, n_scat);
         
-        % transform to a bivariate log-normal distributiom
+        % Transform to a bivariate log-normal distribution.
         da_scat = exp(dist_log_2d(:,1));
         dpp0_scat = exp(dist_log_2d(:,2));
 
-    case {'sequential', 'Sequential', 'SEQUENTIAL'}
+    case 'sequential'
     
         % make a log-normal distribution of projected area diameter
         da_scat = exp(normrnd(mu_log_2d(1), sigma_log_2d(1), [n_scat, 1]));
         
-        % Generate lognormal noise around universal correlation
+        % Sensitivity mode: sample da first, then add log-normal scatter
+        % around the universal-correlation slope.
         dist_scat = mu_log_2d(2) - log(uc(gm_da)) +...
             sigma_log_2d(2) * randn(n_scat, 1);
         
-        % impose the universal correlation, implement the noise and...
-            % ...transform to log-normal space
+        % Impose the universal-correlation slope and transform back to
+        % linear space.
         dpp0_scat = exp(log(uc(da_scat)) + dist_scat);
 
-    case {'ideal', 'Ideal', 'IDEAL'}
+    case 'ideal'
 
         % make a log-normal distribution of projected area diameter
         da_scat = exp(normrnd(mu_log_2d(1), sigma_log_2d(1), [n_scat, 1]));
         
-        % merely impose universal correlation and correct for prefactor
+        % Sensitivity mode: impose the universal-correlation slope without
+        % added scatter.
         dpp0_scat = uc(da_scat) * gm_dpp / uc(gm_da);
         
     otherwise
-        error('invalid input for scaling method (opt_scale)!')
+        error('PFAL:main_scatter_v8:InvalidScaleMode', ...
+            'Invalid input for scaling method: %s', opt_scale)
 
 end
 
 npp0_scat = bc(da_scat, dpp0_scat); % raw converted number of primaries
 
 switch(opts_nppcor)
-    case{'on', 'On', 'ON'}
+    case 'on'
         npp_scat = round(npp0_scat); % corrected number of primaries (has to be integer)
         dpp_scat = da_scat ./ bc_inv(npp_scat); % get corrected primary particle size    
-    otherwise
+    case 'off'
         npp_scat = npp0_scat;
         dpp_scat = dpp0_scat;
+    otherwise
+        error('PFAL:main_scatter_v8:InvalidNppCorrectionMode', ...
+            'Invalid input for primary-particle-count correction: %s', ...
+            opts_nppcor)
 end
 
 % initialize figure for baseline monte carlo points
@@ -580,6 +598,54 @@ mu_sigmapp_out = mean(pars_out.dpp_g(:,2)); % arithmetic mean of...
 sd_sigmapp_out = std(pars_out.dpp_g(:,2)); % arithmetic standard deviation of...
     % ...geomtric standard deviation of primary particle size within aggregates
 
+scatter_metadata = struct();
+scatter_metadata.generated_at = char(datetime('now'));
+scatter_metadata.script = mfilename;
+scatter_metadata.config_file = cfg_scatter.config_file;
+scatter_metadata.dataset_id = cfg_dataset.id;
+scatter_metadata.scale_mode = opt_scale;
+scatter_metadata.npp_correction = opts_nppcor;
+scatter_metadata.n_agg_raw = n_agg_raw;
+scatter_metadata.n_scat = n_scat;
+scatter_metadata.cn_scat = cn_scat;
+scatter_metadata.universal = cfg_uc;
+scatter_metadata.brasil = cfg_bc;
+scatter_metadata.distribution = cfg_dist;
+scatter_metadata.projection = cfg_projection;
+scatter_metadata.rho_log_space = rho;
+scatter_metadata.sigma_cov_log_space = sigma_cov;
+scatter_metadata.method_note = ['bivariate: draws [log(da), log(dpp)] ', ...
+    'from a correlated normal distribution; sequential: draws log(da) ', ...
+    'then adds log-normal scatter around the universal-correlation slope; ', ...
+    'ideal: imposes the universal-correlation slope without added scatter.'];
+
+scatter_summary = table( ...
+    {opt_scale}, ...
+    {opts_nppcor}, ...
+    n_agg_raw, ...
+    n_scat, ...
+    cn_scat, ...
+    gm_da, ...
+    gsd_da, ...
+    gm_dpp, ...
+    gsd_dpp, ...
+    GM_da_out * 1e9, ...
+    GSD_da_out, ...
+    GM_dpp_ens_out * 1e9, ...
+    GSD_dpp_ens_out, ...
+    GM_dpp_out * 1e9, ...
+    GSD_dpp_out, ...
+    mu_sigmapp_out, ...
+    sd_sigmapp_out, ...
+    rho, ...
+    'VariableNames', {'scale_mode', 'npp_correction', 'n_agg_raw', ...
+    'n_scat', 'cn_scat', 'target_GM_da_nm', 'target_GSD_da', ...
+    'target_GM_dpp_nm', 'target_GSD_dpp', 'output_GM_da_nm', ...
+    'output_GSD_da', 'output_ensemble_GM_dpp_nm', ...
+    'output_ensemble_GSD_dpp', 'output_GM_dpp_nm', ...
+    'output_GSD_dpp', 'output_mean_sigmapp', 'output_sd_sigmapp', ...
+    'rho_log_space'});
+
 %% Export scaled aggregates for LD2 %%
 
 % Store the scaled aggregate library with source-specific naming so scatter
@@ -590,8 +656,15 @@ if ~isfolder(dir_scatter_data)
     mkdir(dir_scatter_data)
 end
 
-save(fullfile(dir_scatter_data, 'scaled_aggs_for_LD2_from_main_scatter.mat'), ...
-    'pars_out', '-v7.3')
+canonical_file = fullfile(dir_scatter_data, ...
+    'scaled_aggs_for_LD2_from_main_scatter.mat');
+method_file = fullfile(dir_scatter_data, sprintf( ...
+    'scaled_aggs_for_LD2_from_main_scatter_%s.mat', opt_scale));
+
+save(canonical_file, 'pars_out', 'scatter_metadata', ...
+    'scatter_summary', '-v7.3')
+save(method_file, 'pars_out', 'scatter_metadata', ...
+    'scatter_summary', '-v7.3')
 
 %% Plot scaled aggregates
 

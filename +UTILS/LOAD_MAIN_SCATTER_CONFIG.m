@@ -29,6 +29,7 @@ catch err
     error('PFAL:LOAD_MAIN_SCATTER_CONFIG:InvalidConfig', ...
         'Could not parse scatter config "%s": %s', config_path, err.message);
 end
+cfg.config_file = config_path;
 
 % Validate the dataset section and attach the config directory so the
 % dataset loader can resolve relative paths without re-reading the JSON.
@@ -87,10 +88,22 @@ cfg.projection.n_ang = require_scalar_field(cfg.projection, ...
     'n_ang', 'projection.n_ang');
 
 cfg.options = require_struct_field(cfg, 'options', 'options section');
-cfg.options.opt_scale = require_text_field(cfg.options, ...
-    'opt_scale', 'options.opt_scale');
-cfg.options.opts_nppcor = require_text_field(cfg.options, ...
-    'opts_nppcor', 'options.opts_nppcor');
+cfg.options.opt_scale = optional_text_field(cfg.options, ...
+    'opt_scale', 'bivariate');
+valid_scale_modes = {'bivariate', 'sequential', 'ideal'};
+if ~ismember(cfg.options.opt_scale, valid_scale_modes)
+    error('PFAL:LOAD_MAIN_SCATTER_CONFIG:InvalidScaleMode', ...
+        ['options.opt_scale must be one of: bivariate, sequential, ', ...
+        'or ideal. Got "%s".'], cfg.options.opt_scale);
+end
+cfg.options.opts_nppcor = optional_text_field(cfg.options, ...
+    'opts_nppcor', 'off');
+valid_nppcor_modes = {'on', 'off'};
+if ~ismember(cfg.options.opts_nppcor, valid_nppcor_modes)
+    error('PFAL:LOAD_MAIN_SCATTER_CONFIG:InvalidNppCorrectionMode', ...
+        'options.opts_nppcor must be either on or off. Got "%s".', ...
+        cfg.options.opts_nppcor);
+end
 
 end
 
@@ -115,6 +128,19 @@ if ~isfield(src, field_name) || isempty(src.(field_name))
 end
 
 out = char(src.(field_name));
+
+end
+
+function out = optional_text_field(src, field_name, default_value)
+%OPTIONAL_TEXT_FIELD Read a text field with a validated default.
+
+if ~isfield(src, field_name) || isempty(src.(field_name))
+    out = default_value;
+else
+    out = char(src.(field_name));
+end
+
+out = lower(strtrim(out));
 
 end
 
