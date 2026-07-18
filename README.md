@@ -2,7 +2,7 @@ Post-Flame Agglomeration Algorithm (PFAL)
 ===
 
 PFAL generates soot-like fractal aggregates with a staged Langevin dynamics
-workflow. The current workflow is centered on three scripts:
+workflow. The core simulation pipeline has three stages:
 
 1. `main_LD1_v3.m` generates a raw first-stage aggregate library.
 2. `main_scale_v2.m` or `main_scatter_v8.m` calibrates that library to target
@@ -10,10 +10,14 @@ workflow. The current workflow is centered on three scripts:
 3. `main_LD2_v3.m` runs second-stage post-flame agglomeration on the calibrated
    aggregate population.
 
-The physical motivation is to model soot aggregates that first form as compact
-diffusion-limited clusters, then acquire realistic size distributions, and then
-continue agglomerating after dilution/cooling. This gives a controlled way to
-study hybrid soot structures with nonuniform primary-particle sizes.
+`main_tem_analysis_v1.m` is a separate analysis workflow for TEM aggregate and
+primary-particle measurements. It produces summary tables, model-input
+statistics, and publication figures from configured datasets.
+
+The model represents soot aggregates that first form as compact
+diffusion-limited clusters, acquire realistic size distributions, and continue
+agglomerating after dilution or cooling. It is intended for studies of hybrid
+soot structures with nonuniform primary-particle sizes.
 
 Examples of hybrid soot imaged under transmission electron microscopy:
 
@@ -32,7 +36,7 @@ data/main_ld1/ld1_aggregate_library.mat
         |                              |
         v                              v
 main_scale_v2                    main_scatter_v8
-correlation-based scaling        bivariate scatter sampling
+correlation-based scaling        bivariate scatter sampling (default)
         |                              |
         v                              v
 data/main_scale/                 data/main_scatter/
@@ -46,7 +50,8 @@ from_main_scale.mat              from_main_scatter.mat
         second-stage Langevin dynamics
                        |
                        v
-              results/main_ld2_*
+     results/main_ld2_from_main_*/
+       LD2__*__YYYY-MM-DD/
 ```
 
 ### Stage 1: LD1 Aggregate Library
@@ -95,23 +100,35 @@ main_LD1_v3
 
 Both calibration scripts start from the LD1 `pp0` library.
 
-`main_scale_v2.m` rescales and filters LD1 aggregates against the combined
-Brasil et al. and Olfert-Rogak correlations. It writes:
+`main_scale_v2.m` rescales and filters LD1 aggregates against the Brasil et al.
+(1999) aggregate correlation and the Olfert and Rogak (2019) universal
+correlation. It writes:
 
 ```text
 data/main_scale/scaled_aggs_for_LD2_from_main_scale.mat
 ```
 
-`main_scatter_v8.m` samples a bivariate projected-area/primary-particle size
-distribution, assigns LD1 aggregate seeds to those targets, rescales them, and
-writes:
+`main_scatter_v8.m` samples a projected-area/primary-particle size
+distribution, assigns LD1 aggregate seeds to those targets, and rescales the
+selected aggregates. Bivariate sampling is the default. The `sequential` and
+`ideal` modes remain available for sensitivity runs through
+`options.opt_scale` in the scatter config.
+
+Every scatter run writes the canonical LD2 input:
 
 ```text
 data/main_scatter/scaled_aggs_for_LD2_from_main_scatter.mat
 ```
 
-Both outputs use the variable `pars_out`, which is the input contract expected
-by LD2.
+It also writes a mode-specific copy, such as:
+
+```text
+data/main_scatter/scaled_aggs_for_LD2_from_main_scatter_bivariate.mat
+```
+
+Both calibration workflows save the aggregate payload as `pars_out`, the input
+variable expected by LD2. Scatter outputs also contain `scatter_metadata` and
+`scatter_summary`.
 
 ### Stage 2B: LD2 Post-Flame Agglomeration
 
@@ -128,45 +145,85 @@ setenv('PFAL_MAIN_LD2_CONFIG', ...
 main_LD2_v3
 ```
 
-## Configuration And Running
+LD2 creates a dated run directory under the configured `results.root` and
+writes checkpoint and final MAT files using the configured prefixes. An
+interrupted checkpoint can be resumed with:
 
-Each main workflow stage has an example config committed under `config/`.
-Machine-specific `.local*.json` configs are ignored by Git.
+```matlab
+UTILS.RESUME_LD2_V3(checkpoint_folder, checkpoint_file)
+```
+
+Calling `UTILS.RESUME_LD2_V3` without arguments prompts for both values.
+
+### TEM Measurement Analysis
+
+`main_tem_analysis_v1.m` processes configured TEM datasets independently of
+the LD simulation pipeline. Each config entry identifies an aggregate MAT file
+(the example expects an `Aggs` variable) and a set of ImageJ primary-particle
+area CSV files. The script calculates aggregate- and ensemble-level statistics,
+hybridity and collapse summaries, and the four distribution statistics
+(`GM_dpp`, `GSD_dpp`, `GM_da`, and `GSD_da`) that correspond to fields in the
+scale and scatter configs.
+
+With the example output settings, the main machine-readable files are:
+
+```text
+data/main_tem_analysis/tem_analysis_results.mat
+data/main_tem_analysis/model_inputs.csv
+data/main_tem_analysis/summary_table.csv
+```
+
+Additional CSV diagnostics are written to the same directory. When figure
+export is enabled, figures are written to `results/main_tem_analysis/`.
+
+## Configuration and Running
+
+Each configurable workflow has an example JSON file committed under `config/`.
+Copy the required example to the corresponding `.local.json` name and edit the
+dataset paths and, where present, output settings before running it. Files
+matching `.local*.json` are ignored by Git.
 
 ```text
 config/
 |-- main_ld1/
-|   |-- main_ld1_config.example.json
-|   |-- main_ld1_config.local.json
-|   |-- main_ld1_config.local.file.json
-|   `-- main_ld1_config.local.webtest.json
+|   `-- main_ld1_config.example.json
 |-- main_scale/
 |   `-- main_scale_config.example.json
 |-- main_scatter/
 |   `-- main_scatter_config.example.json
-`-- main_ld2/
-    |-- main_ld2_from_main_scale_config.example.json
-    `-- main_ld2_from_main_scatter_config.example.json
+|-- main_ld2/
+|   |-- main_ld2_from_main_scale_config.example.json
+|   `-- main_ld2_from_main_scatter_config.example.json
+`-- main_tem_analysis/
+    `-- main_tem_analysis_config.example.json
 ```
+
+Config selection follows the script loaders:
+
+| Script | Config selection |
+| --- | --- |
+| `main_LD1_v3.m` | `PFAL_MAIN_LD1_CONFIG`, or `config/main_ld1/main_ld1_config.local.json` when the environment variable is unset |
+| `main_scale_v2.m` | `config/main_scale/main_scale_config.local.json` |
+| `main_scatter_v8.m` | `config/main_scatter/main_scatter_config.local.json` |
+| `main_LD2_v3.m` | `PFAL_MAIN_LD2_CONFIG` is required |
+| `main_tem_analysis_v1.m` | `PFAL_MAIN_TEM_ANALYSIS_CONFIG`, or `config/main_tem_analysis/main_tem_analysis_config.local.json` when the environment variable is unset |
 
 Typical run order:
 
 ```matlab
 main_LD1_v3
-main_scale_v2        % or main_scatter_v8
-main_scatter_v8      % optional alternative branch
+main_scatter_v8      % default bivariate calibration branch
 setenv('PFAL_MAIN_LD2_CONFIG', ...
-    'config/main_ld2/main_ld2_from_main_scale_config.local.json')
+    'config/main_ld2/main_ld2_from_main_scatter_config.local.json')
 main_LD2_v3
 ```
 
-Use `PFAL_MAIN_LD1_CONFIG` to run LD1 with a non-default config:
+To use correlation-based scaling instead, run `main_scale_v2` in place of
+`main_scatter_v8` and select
+`config/main_ld2/main_ld2_from_main_scale_config.local.json` for LD2.
 
-```matlab
-setenv('PFAL_MAIN_LD1_CONFIG', ...
-    'config/main_ld1/main_ld1_config.local.webtest.json')
-main_LD1_v3
-```
+The TEM analysis runs separately with `main_tem_analysis_v1` after its local
+config and source datasets have been prepared.
 
 ## Repository Map
 
@@ -174,18 +231,19 @@ main_LD1_v3
 PFAL/
 |-- main_LD1_v3.m          first-stage aggregate-library generation
 |-- main_scale_v2.m        correlation-based LD1 library scaling
-|-- main_scatter_v8.m      bivariate LD1 library sampling/scaling
+|-- main_scatter_v8.m      LD1 library sampling/scaling; bivariate by default
 |-- main_LD2_v3.m          second-stage post-flame agglomeration
+|-- main_tem_analysis_v1.m TEM measurement analysis and figure generation
 |-- main_*                 validation, shielding, collapse, and utility scripts
 |-- post_*                 post-processing scripts for generated results
-|-- config/                example and local JSON configs
-|-- data/                  generated MAT libraries for workflow handoff
-|-- results/               LD2 checkpoints and final workspaces
+|-- config/                JSON templates and ignored local configs
+|-- data/                  local inputs and generated workflow handoff files
+|-- results/               LD2 workspaces and exported TEM figures
 |-- inputs/                legacy tab-delimited parameter files
 |-- +PAR/                  particle initialization, sizing, projection, geometry
 |-- +TRANSP/               transport properties, mobility, marching, boundaries
 |-- +COL/                  collision detection, connection, aggregate growth
-|-- +UTILS/                config loaders, plotting helpers, fitting, IO helpers
+|-- +UTILS/                config, checkpoint-resume, plotting, fitting, and IO helpers
 |-- +VIS/                  visualization routines
 |-- @AGG/                  aggregate class utilities
 `-- +DEPOT/                archived or experimental scripts, including legacy PFA
@@ -211,13 +269,16 @@ Discrete element Langevin dynamics in PFAL follows these repeated operations:
    constant modeling. Journal of Aerosol Science, 155, 105746.
 2. Heine, M. C., & Pratsinis, S. E. (2007). Brownian coagulation at high
    concentration. Langmuir, 23(19), 9882-9890.
-3. Olfert, J., & Rogak, S. (2019). Universal relations between soot effective
+3. Brasil, A. M., Farias, T. L., & Carvalho, M. G. (1999). A recipe for image
+   characterization of fractal-like aggregates. Journal of Aerosol Science,
+   30(10), 1379-1389.
+4. Olfert, J., & Rogak, S. (2019). Universal relations between soot effective
    density and primary particle size for common combustion sources. Aerosol
    Science and Technology, 53(5), 485-492.
-4. Baldelli, A., Trivanovic, U., Corbin, J. C., Lobo, P., Gagne, S., Mille,
+5. Baldelli, A., Trivanovic, U., Corbin, J. C., Lobo, P., Gagne, S., Mille,
    J. W., and Rogak, S. (2020). Typical and atypical morphology of
    non-volatile particles from a diesel and natural gas marine engine. Aerosol
    and Air Quality Research, 20(4), 730-740.
-5. Nikookar, H., Sipkens, T. A., & Rogak, S. N. (2025). Simulating the effect
+6. Nikookar, H., Sipkens, T. A., & Rogak, S. N. (2025). Simulating the effect
    of post-flame agglomeration on the structure of soot. Aerosol Science and
    Technology, 59(1), 1-15.
