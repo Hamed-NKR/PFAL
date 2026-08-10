@@ -9,6 +9,7 @@ config/main_ld1/main_ld1_config.local*.json
 config/main_ld2/main_ld2_from_main_scatter_config.local*.json
 config/main_ld2/main_ld2_from_main_scale_config.local*.json
 config/main_tem_analysis/main_tem_analysis_config.local*.json
+config/main_valid/main_valid_config.local*.json
 data/*
 !data/.gitkeep
 !data/main_ld1/
@@ -26,5 +27,11 @@ data/main_ld2/*
 !data/main_tem_analysis/
 data/main_tem_analysis/*
 !data/main_tem_analysis/.gitkeep
+!data/experimental_effective_density/
+data/experimental_effective_density/*
+!data/experimental_effective_density/.gitkeep
+!data/main_valid_webtest/
+data/main_valid_webtest/*
+!data/main_valid_webtest/.gitkeep
 .pfal-cache/
 data_publication_staging/

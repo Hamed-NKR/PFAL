@@ -1,0 +1,190 @@
+{
+  "sources": {
+    "ld2": {
+      "id": "latest_main_scatter_ld2",
+      "file": "../../results/main_ld2_from_main_scatter/LD2__scaled_aggs_for_LD2_from_main_scatter__2026-05-16/LD2__from_main_scatter__final__2026-06-28_20-05-29.mat",
+      "url": "",
+      "doi": "",
+      "sha256": "",
+      "cache_file": "../../.pfal-cache/main_valid/ld2_results.mat",
+      "variables": ["parsdata", "fl", "r_n_agg"]
+    },
+    "tem": {
+      "id": "processed_tem_analysis",
+      "file": "../../data/main_tem_analysis/tem_analysis_results.mat",
+      "url": "",
+      "doi": "",
+      "sha256": "",
+      "cache_file": "../../.pfal-cache/main_valid/tem_analysis_results.mat",
+      "variables": ["aggregate_table"]
+    },
+    "effective_density": {
+      "id": "normalized_odias_effective_density",
+      "file": "../../data/experimental_effective_density/effective_density_validation_data.mat",
+      "url": "",
+      "doi": "",
+      "sha256": "",
+      "cache_file": "../../.pfal-cache/main_valid/effective_density_validation_data.mat",
+      "variables": ["effective_density_data", "metadata"]
+    }
+  },
+  "conditions": [
+    {
+      "id": "low_agglomeration",
+      "label": "Low agglomeration",
+      "enabled": true,
+      "include": {"dpp_vs_da": true, "rho_eff_vs_dm": true},
+      "ld2_fractions": [1.0],
+      "tem_entry_id": "2024_08_19_low_agglomeration",
+      "effective_density_condition_id": "low_agglomeration",
+      "style": {
+        "color": "#0072B2",
+        "simulation_marker": "o",
+        "experimental_marker": "^",
+        "simulation_marker_size": 10,
+        "experimental_marker_size": 48,
+        "fit_line_width": 2.2
+      }
+    },
+    {
+      "id": "high_agglomeration",
+      "label": "High agglomeration",
+      "enabled": true,
+      "include": {"dpp_vs_da": true, "rho_eff_vs_dm": true},
+      "ld2_fractions": [0.1, 0.05],
+      "tem_entry_id": "2025_02_06_high_agglomeration",
+      "effective_density_condition_id": "high_agglomeration",
+      "style": {
+        "color": "#D55E00",
+        "simulation_marker": "o",
+        "experimental_marker": "s",
+        "simulation_marker_size": 10,
+        "experimental_marker_size": 48,
+        "fit_line_width": 2.2
+      }
+    },
+    {
+      "id": "moderate_collapse",
+      "label": "Moderate collapse",
+      "enabled": false,
+      "include": {"dpp_vs_da": false, "rho_eff_vs_dm": true},
+      "ld2_fractions": [],
+      "tem_entry_id": "",
+      "effective_density_condition_id": "moderate_collapse",
+      "style": {
+        "color": "#009E73",
+        "simulation_marker": "o",
+        "experimental_marker": "d",
+        "simulation_marker_size": 10,
+        "experimental_marker_size": 48,
+        "fit_line_width": 2.2
+      }
+    },
+    {
+      "id": "extensive_collapse",
+      "label": "Extensive collapse",
+      "enabled": false,
+      "include": {"dpp_vs_da": false, "rho_eff_vs_dm": true},
+      "ld2_fractions": [],
+      "tem_entry_id": "",
+      "effective_density_condition_id": "extensive_collapse",
+      "style": {
+        "color": "#CC79A7",
+        "simulation_marker": "o",
+        "experimental_marker": "v",
+        "simulation_marker_size": 10,
+        "experimental_marker_size": 48,
+        "fit_line_width": 2.2
+      }
+    }
+  ],
+  "physics": {"material_density_kg_m3": 1860},
+  "references": {
+    "dpp_vs_da": {
+      "enabled": true,
+      "label": "Olfert & Rogak (2019)",
+      "exponent": 0.35,
+      "value_at_100_nm": 17.8,
+      "color": "#7E2F8E",
+      "line_style": "-.",
+      "line_width": 2.5
+    },
+    "rho_eff_vs_dm": {
+      "enabled": true,
+      "label": "Olfert & Rogak (2019)",
+      "mass_mobility_exponent": 2.48,
+      "value_at_100_nm": 510,
+      "color": "#7E2F8E",
+      "line_style": "-.",
+      "line_width": 2.5
+    }
+  },
+  "fits": {
+    "dpp_vs_da": {
+      "enabled": true,
+      "degree": 1,
+      "resolution": 1000,
+      "posterior_samples": 1000,
+      "rng_seed": 1,
+      "credible_level": 0.95,
+      "show_band": true,
+      "x_transform": "log10",
+      "y_transform": "log10",
+      "slope_offset": 0,
+      "prior_mu": [],
+      "prior_v_scale": 100,
+      "prior_a": 3,
+      "prior_b": 1
+    },
+    "rho_eff_vs_dm": {
+      "enabled": true,
+      "degree": 2,
+      "resolution": 1000,
+      "posterior_samples": 1000,
+      "rng_seed": 1,
+      "credible_level": 0.95,
+      "show_band": true,
+      "x_transform": "log10",
+      "y_transform": "log10",
+      "slope_offset": 3,
+      "prior_mu": [],
+      "prior_v_scale": 100,
+      "prior_a": 3,
+      "prior_b": 1
+    }
+  },
+  "figures": {
+    "visible": "on",
+    "show_raw_simulation": true,
+    "show_tem_error_bars": false,
+    "simulation_marker_alpha": 0.15,
+    "band_alpha": 0.25,
+    "font": {
+      "family": "Segoe UI",
+      "fallback": "Arial",
+      "axis_size": 11,
+      "label_size": 16,
+      "legend_size": 9,
+      "weight": "normal",
+      "interpreter": "tex"
+    },
+    "dpp_vs_da": {
+      "position": [50, 50, 520, 500],
+      "x_limits": [],
+      "y_limits": []
+    },
+    "rho_eff_vs_dm": {
+      "position": [150, 150, 520, 500],
+      "x_limits": [],
+      "y_limits": []
+    }
+  },
+  "outputs": {
+    "root": "../../results/main_valid",
+    "export": true,
+    "pdf": true,
+    "png": true,
+    "png_resolution": 600,
+    "save_figures": false
+  }
+}

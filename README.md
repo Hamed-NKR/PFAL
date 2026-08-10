@@ -14,6 +14,11 @@ workflow. The core simulation pipeline has three stages:
 primary-particle measurements. It produces summary tables, model-input
 statistics, and publication figures from configured datasets.
 
+`main_valid_v3.m` compares selected LD2 populations with the processed TEM and
+tandem AAC-SMPS effective-density measurements. It produces manuscript-ready
+`d_pp` versus `d_a` and `rho_eff` versus `d_m` figures together with pointwise
+predictions, log-space validation metrics, and source provenance.
+
 The model represents soot aggregates that first form as compact
 diffusion-limited clusters, acquire realistic size distributions, and continue
 agglomerating after dilution or cooling. It is intended for studies of hybrid
@@ -176,6 +181,58 @@ data/main_tem_analysis/summary_table.csv
 Additional CSV diagnostics are written to the same directory. When figure
 export is enabled, figures are written to `results/main_tem_analysis/`.
 
+### Experimental Validation
+
+The validation workflow consumes processed data and does not rerun TEM or
+ODIAS analysis. Keep the original ODIAS workspace at:
+
+```text
+data/experimental_effective_density/Effective_Density_Compiled-17_Mar_2025-05_00_44.mat
+```
+
+Create the small, self-describing companion used by validation once:
+
+```matlab
+source_file = fullfile('data', 'experimental_effective_density', ...
+    'Effective_Density_Compiled-17_Mar_2025-05_00_44.mat');
+output_file = fullfile('data', 'experimental_effective_density', ...
+    'effective_density_validation_data.mat');
+UTILS.NORMALIZE_EFFECTIVE_DENSITY_DATA(source_file, output_file, ...
+    'ExpectedSourceSHA256', ...
+    '3EEF1BC1981EE654BA5FE0198AF50EA977DAEFA5973D37AE27DD787A5844048C');
+```
+
+The normalizer loads only `dist_grp` and `test_condition`, copies all four
+condition groups without rounding or recalculation, and proves exact numerical
+round-trip equality before replacing the companion. The original workspace is
+never modified. Its raw tandem distributions, saved figures, and fit objects
+are not required by PFAL.
+
+The TEM input is the existing processed artifact:
+
+```text
+data/main_tem_analysis/tem_analysis_results.mat
+```
+
+`main_valid_v3.m` uses only `aggregate_table.entry_id`, `da_nm`, `dbarpp_nm`,
+and the optional `dbarpp_ci95_*` columns. Set the validation config and run:
+
+```matlab
+setenv('PFAL_MAIN_VALID_CONFIG', ...
+    'config/main_valid/main_valid_config.local.json')
+main_valid_v3
+```
+
+Low and high agglomeration are enabled by default. Moderate and extensive
+collapse remain named, disabled conditions that can be activated after their
+TEM and LD2 mappings are supplied. Bayesian fitting, degree, credible level,
+posterior samples, priors, plot styling, Segoe UI typography, reference
+relations, and exports are controlled independently in JSON.
+
+Stable PDF and PNG figures are written to `results/main_valid/`. Every run also
+creates `results/main_valid/runs/<timestamp>/` with the resolved config, source
+hashes, pointwise predictions, summary metrics, and a MAT result bundle.
+
 ## Configuration and Running
 
 Each configurable workflow has an example JSON file committed under `config/`.
@@ -194,8 +251,10 @@ config/
 |-- main_ld2/
 |   |-- main_ld2_from_main_scale_config.example.json
 |   `-- main_ld2_from_main_scatter_config.example.json
-`-- main_tem_analysis/
-    `-- main_tem_analysis_config.example.json
+|-- main_tem_analysis/
+|   `-- main_tem_analysis_config.example.json
+`-- main_valid/
+    `-- main_valid_config.example.json
 ```
 
 Config selection follows the script loaders:
@@ -207,6 +266,7 @@ Config selection follows the script loaders:
 | `main_scatter_v8.m` | `config/main_scatter/main_scatter_config.local.json` |
 | `main_LD2_v3.m` | `PFAL_MAIN_LD2_CONFIG` is required |
 | `main_tem_analysis_v1.m` | `PFAL_MAIN_TEM_ANALYSIS_CONFIG`, or `config/main_tem_analysis/main_tem_analysis_config.local.json` when the environment variable is unset |
+| `main_valid_v3.m` | `PFAL_MAIN_VALID_CONFIG`, or `config/main_valid/main_valid_config.local.json` when the environment variable is unset |
 
 Typical run order:
 
@@ -225,6 +285,17 @@ To use correlation-based scaling instead, run `main_scale_v2` in place of
 The TEM analysis runs separately with `main_tem_analysis_v1` after its local
 config and source datasets have been prepared.
 
+Validation also has `local.file`, `local`, and `local.webtest` profiles. The
+web-test profile uses compact fixtures created by:
+
+```matlab
+UTILS.CREATE_MAIN_VALID_WEBTEST_FIXTURES
+```
+
+Serve `data/main_valid_webtest/server/` on localhost port 8765, select
+`main_valid_config.local.webtest.json`, and run `main_valid_v3` to exercise the
+URL fallback without transferring the full experimental workspace.
+
 ## Repository Map
 
 ```text
@@ -234,6 +305,7 @@ PFAL/
 |-- main_scatter_v8.m      LD1 library sampling/scaling; bivariate by default
 |-- main_LD2_v3.m          second-stage post-flame agglomeration
 |-- main_tem_analysis_v1.m TEM measurement analysis and figure generation
+|-- main_valid_v3.m        LD2/TEM/effective-density validation figures
 |-- main_*                 validation, shielding, collapse, and utility scripts
 |-- post_*                 post-processing scripts for generated results
 |-- config/                JSON templates and ignored local configs
