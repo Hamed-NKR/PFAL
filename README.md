@@ -228,6 +228,16 @@ collapse remain named, disabled conditions that can be activated after their
 TEM and LD2 mappings are supplied. Bayesian fitting, degree, credible level,
 posterior samples, priors, plot styling, Segoe UI typography, reference
 relations, and exports are controlled independently in JSON.
+Legend location, column count, orientation, border visibility, text interpreter,
+and text size are configurable under `figures.legend` and
+`figures.font.legend_size`. Legend font family, fallback, and weight are also
+independent settings; the manuscript profile uses 13-point Segoe UI Light at
+normal weight. The plot-frame and tick-line weight is controlled by
+`figures.axis_line_width`.
+Measurement edge color, marker-face color, outline width, and marker size are
+configured per condition through the `conditions[].style.experimental_*`
+fields, independently of the numerical-population color. The default marker
+face is `none`, leaving the darker measurement outlines transparent.
 
 Stable PDF and PNG figures are written to `results/main_valid/`. Every run also
 creates `results/main_valid/runs/<timestamp>/` with the resolved config, source

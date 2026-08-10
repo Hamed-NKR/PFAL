@@ -39,10 +39,13 @@
       "effective_density_condition_id": "low_agglomeration",
       "style": {
         "color": "#0072B2",
+        "experimental_color": "#005A9C",
+        "experimental_marker_face_color": "none",
+        "experimental_marker_line_width": 1.5,
         "simulation_marker": "o",
         "experimental_marker": "^",
         "simulation_marker_size": 10,
-        "experimental_marker_size": 48,
+        "experimental_marker_size": 72,
         "fit_line_width": 2.2
       }
     },
@@ -56,10 +59,13 @@
       "effective_density_condition_id": "high_agglomeration",
       "style": {
         "color": "#D55E00",
+        "experimental_color": "#C45100",
+        "experimental_marker_face_color": "none",
+        "experimental_marker_line_width": 1.5,
         "simulation_marker": "o",
         "experimental_marker": "s",
         "simulation_marker_size": 10,
-        "experimental_marker_size": 48,
+        "experimental_marker_size": 72,
         "fit_line_width": 2.2
       }
     },
@@ -73,10 +79,13 @@
       "effective_density_condition_id": "moderate_collapse",
       "style": {
         "color": "#009E73",
+        "experimental_color": "#007A59",
+        "experimental_marker_face_color": "none",
+        "experimental_marker_line_width": 1.5,
         "simulation_marker": "o",
         "experimental_marker": "d",
         "simulation_marker_size": 10,
-        "experimental_marker_size": 48,
+        "experimental_marker_size": 72,
         "fit_line_width": 2.2
       }
     },
@@ -90,10 +99,13 @@
       "effective_density_condition_id": "extensive_collapse",
       "style": {
         "color": "#CC79A7",
+        "experimental_color": "#9E4F7F",
+        "experimental_marker_face_color": "none",
+        "experimental_marker_line_width": 1.5,
         "simulation_marker": "o",
         "experimental_marker": "v",
         "simulation_marker_size": 10,
-        "experimental_marker_size": 48,
+        "experimental_marker_size": 72,
         "fit_line_width": 2.2
       }
     }
@@ -159,22 +171,33 @@
     "show_tem_error_bars": false,
     "simulation_marker_alpha": 0.15,
     "band_alpha": 0.25,
+    "axis_line_width": 1.0,
     "font": {
       "family": "Segoe UI",
       "fallback": "Arial",
       "axis_size": 11,
       "label_size": 16,
-      "legend_size": 9,
+      "legend_size": 13,
       "weight": "normal",
       "interpreter": "tex"
     },
+    "legend": {
+      "location": "eastoutside",
+      "columns": 1,
+      "box": false,
+      "orientation": "vertical",
+      "interpreter": "none",
+      "font_family": "Segoe UI Light",
+      "font_fallback": "Segoe UI",
+      "font_weight": "normal"
+    },
     "dpp_vs_da": {
-      "position": [50, 50, 520, 500],
+      "position": [50, 50, 900, 500],
       "x_limits": [],
       "y_limits": []
     },
     "rho_eff_vs_dm": {
-      "position": [150, 150, 520, 500],
+      "position": [150, 150, 900, 500],
       "x_limits": [],
       "y_limits": []
     }
