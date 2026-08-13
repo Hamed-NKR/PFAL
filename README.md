@@ -164,11 +164,64 @@ Calling `UTILS.RESUME_LD2_V3` without arguments prompts for both values.
 
 `main_tem_analysis_v1.m` processes configured TEM datasets independently of
 the LD simulation pipeline. Each config entry identifies an aggregate MAT file
-(the example expects an `Aggs` variable) and a set of ImageJ primary-particle
-area CSV files. The script calculates aggregate- and ensemble-level statistics,
-hybridity and collapse summaries, and the four distribution statistics
-(`GM_dpp`, `GSD_dpp`, `GM_da`, and `GSD_da`) that correspond to fields in the
-scale and scatter configs.
+(the example expects an `Aggs` variable), ImageJ primary-particle area CSV
+files, and a complete publication style. Figure-specific `condition_ids`
+control which enabled conditions appear and in what order. The default profiles
+select only low and high agglomeration. A collapse condition can be added later
+by defining one entry and adding its ID to the required figure lists; plotting
+code changes are not required.
+
+The profile is organized into four editing areas:
+
+- `analysis` and `outputs` control calculations and file locations.
+- `plots.font`, `plots.axes`, `plots.boxplot`, and `plots.export` control the
+  shared publication format.
+- `plots.figures.<figure_id>` controls one figure, including its enabled state,
+  condition list, axis settings, layout, legend, and figure-specific options.
+- `entries` defines each condition, its data sources, marker, condition colors,
+  boxplot colors, and same-hue stacked-bar palettes.
+
+For the usual paper update, edit only `entries[].style` and the relevant
+`condition_ids`, axis limits, or ticks. Frequency-bin definitions are grouped
+separately under `plots.frequency_bins` because they affect only the two
+stacked-frequency diagnostics.
+
+Run the default paper profile from MATLAB:
+
+```matlab
+main_tem_analysis_v1
+```
+
+Run a specific profile explicitly:
+
+```matlab
+setenv('PFAL_MAIN_TEM_ANALYSIS_CONFIG', ...
+    'config/main_tem_analysis/main_tem_analysis_config.local.file.json')
+main_tem_analysis_v1
+```
+
+The script name is not a PowerShell command. From PowerShell, launch MATLAB in
+batch mode instead:
+
+```powershell
+matlab -batch "cd('D:\Hamed\Personal_Projects\Git\PFAL'); main_tem_analysis_v1"
+```
+
+The figure configuration controls output formats and resolution, typography,
+condition colors and markers, reference lines, axes, legends, category
+definitions, and all frequency-bin boundaries and inclusivity rules. Each
+condition also defines independent `stack_colors` arrays for the subaggregate-
+count and collapsed-subaggregate frequency figures. The paper profile uses
+blue shades for low agglomeration and orange shades for high agglomeration.
+Segoe UI Semilight is the default face, Segoe UI is its fallback, and all font
+weights are normal. The larger paper defaults are 13-point axis text,
+18-point labels, and 15-point legends. The default export is vector PDF plus a
+600-dpi PNG rendered from that PDF, so both formats use identical embedded
+fonts and geometry. This `png_source` setting requires `pdftocairo`, supplied
+by Poppler and common TeX distributions; set it to `figure` to use MATLAB's
+direct raster renderer. Shared axis-label offsets and tick-label rotation are
+configurable under `plots.axes`; the paper profile uses horizontal, multiline
+condition labels.
 
 With the example output settings, the main machine-readable files are:
 
@@ -176,10 +229,15 @@ With the example output settings, the main machine-readable files are:
 data/main_tem_analysis/tem_analysis_results.mat
 data/main_tem_analysis/model_inputs.csv
 data/main_tem_analysis/summary_table.csv
+data/main_tem_analysis/hybridity_frequency_summary.csv
+data/main_tem_analysis/collapse_frequency_summary.csv
 ```
 
-Additional CSV diagnostics are written to the same directory. When figure
-export is enabled, figures are written to `results/main_tem_analysis/`.
+The exported figure set includes the manual TEM correlation, both
+primary-particle Appendix variants, aggregate metrics, separate stacked-
+frequency figures for subaggregate counts and collapsed-subaggregate fractions,
+and the subaggregate-category correlation. Figures are written to
+`results/main_tem_analysis/`.
 
 ### Experimental Validation
 
@@ -230,16 +288,18 @@ posterior samples, priors, plot styling, Segoe UI typography, reference
 relations, and exports are controlled independently in JSON.
 Legend location, column count, orientation, border visibility, text interpreter,
 and text size are configurable under `figures.legend` and
-`figures.font.legend_size`. Legend font family, fallback, and weight are also
-independent settings; the manuscript profile uses 13-point Segoe UI Light at
-normal weight. The plot-frame and tick-line weight is controlled by
-`figures.axis_line_width`.
+`figures.font.legend_size`. All text uses Segoe UI Semilight at normal weight in the
+manuscript profile, including 13-point tick labels, 18-point axis labels, and
+15-point legends. The plot-frame and tick-line weight is controlled by
+`figures.axis_line_width`; label offsets and tick-label rotation are controlled
+under `figures.axes`.
 Measurement edge color, marker-face color, outline width, and marker size are
 configured per condition through the `conditions[].style.experimental_*`
 fields, independently of the numerical-population color. The default marker
 face is `none`, leaving the darker measurement outlines transparent.
 
-Stable PDF and PNG figures are written to `results/main_valid/`. Every run also
+Stable PDF and matching PDF-rendered PNG figures are written to
+`results/main_valid/`. Every run also
 creates `results/main_valid/runs/<timestamp>/` with the resolved config, source
 hashes, pointwise predictions, summary metrics, and a MAT result bundle.
 
@@ -262,7 +322,10 @@ config/
 |   |-- main_ld2_from_main_scale_config.example.json
 |   `-- main_ld2_from_main_scatter_config.example.json
 |-- main_tem_analysis/
-|   `-- main_tem_analysis_config.example.json
+|   |-- main_tem_analysis_config.example.json
+|   |-- main_tem_analysis_config.local.json
+|   |-- main_tem_analysis_config.local.file.json
+|   `-- main_tem_analysis_config.local.webtest.json
 `-- main_valid/
     `-- main_valid_config.example.json
 ```
@@ -293,7 +356,9 @@ To use correlation-based scaling instead, run `main_scale_v2` in place of
 `config/main_ld2/main_ld2_from_main_scale_config.local.json` for LD2.
 
 The TEM analysis runs separately with `main_tem_analysis_v1` after its local
-config and source datasets have been prepared.
+config and source datasets have been prepared. The four TEM profiles share the
+complete schema; `local.json` is the default low/high paper profile, and
+`local.webtest.json` uses invisible figures for automated execution.
 
 Validation also has `local.file`, `local`, and `local.webtest` profiles. The
 web-test profile uses compact fixtures created by:

@@ -1,74 +1,99 @@
 {
-  "analysis": {
-    "coverage_threshold": 1.1,
-    "logistic_bandwidth": 0.05,
-    "primary_area_start_row": 2,
-    "random_resample_count": 5000,
-    "random_seed": 1
-  },
-  "outputs": {
-    "data_root": "../../data/main_tem_analysis",
-    "results_root": "../../results/main_tem_analysis",
-    "mat_file": "tem_analysis_results.mat",
-    "model_inputs_csv": "model_inputs.csv",
-    "summary_csv": "summary_table.csv"
-  },
+  "analysis": {"coverage_threshold": 1.1, "logistic_bandwidth": 0.05, "primary_area_start_row": 2, "random_resample_count": 5000, "random_seed": 1},
+  "outputs": {"data_root": "../../data/main_tem_analysis", "results_root": "../../results/main_tem_analysis", "mat_file": "tem_analysis_results.mat", "model_inputs_csv": "model_inputs.csv", "summary_csv": "summary_table.csv"},
   "plots": {
     "enabled": true,
     "visible": "on",
     "export": true,
-    "format": "png",
-    "resolution": 300,
+    "pdf": true,
+    "png": true,
+    "png_resolution": 600,
+    "png_source": "pdf",
     "save_figures": false,
-    "axis_overrides": {}
+    "axis_line_width": 1.0,
+    "axes": {"box": true, "layer": "top", "tick_length": [0.02, 0.02], "tick_label_rotation": 0, "label_position_mode": "auto", "x_label_offset": 0.055, "y_label_offset": 0.075},
+    "boxplot": {"symbol": "o", "notch": true, "median_min_line_width": 2.0, "outlier_marker_size": 3, "outlier_filled": false, "whisker_line_style": "-"},
+    "font": {"family": "Segoe UI Semilight", "fallback": "Segoe UI", "axis_size": 13, "label_size": 18, "legend_size": 15, "title_size": 18, "weight": "normal", "interpreter": "tex"},
+    "reference": {"color": "#7E2F8E", "line_style": "-.", "line_width": 2.5},
+    "frequency_bins": {
+      "hybridity": [
+        {"id": "eq_1", "label": "{\\it N}_{\\rm subagg} = 1", "lower": 1, "upper": 1, "include_lower": true, "include_upper": true},
+        {"id": "eq_2", "label": "{\\it N}_{\\rm subagg} = 2", "lower": 2, "upper": 2, "include_lower": true, "include_upper": true},
+        {"id": "three_to_five", "label": "3 \\leq {\\it N}_{\\rm subagg} \\leq 5", "lower": 3, "upper": 5, "include_lower": true, "include_upper": true},
+        {"id": "six_to_ten", "label": "6 \\leq {\\it N}_{\\rm subagg} \\leq 10", "lower": 6, "upper": 10, "include_lower": true, "include_upper": true},
+        {"id": "gt_10", "label": "{\\it N}_{\\rm subagg} > 10", "lower": 10, "upper": null, "include_lower": false, "include_upper": false}
+      ],
+      "collapse": [
+        {"id": "eq_0", "label": "{\\it f}_{\\rm col,subagg} = 0", "lower": 0, "upper": 0, "include_lower": true, "include_upper": true},
+        {"id": "zero_to_low", "label": "0 < {\\it f}_{\\rm col,subagg} < 0.33", "lower": 0, "upper": 0.33, "include_lower": false, "include_upper": false},
+        {"id": "low_to_high", "label": "0.33 \\leq {\\it f}_{\\rm col,subagg} \\leq 0.67", "lower": 0.33, "upper": 0.67, "include_lower": true, "include_upper": true},
+        {"id": "high_to_one", "label": "0.67 < {\\it f}_{\\rm col,subagg} < 1", "lower": 0.67, "upper": 1, "include_lower": false, "include_upper": false},
+        {"id": "eq_1", "label": "{\\it f}_{\\rm col,subagg} = 1", "lower": 1, "upper": 1, "include_lower": true, "include_upper": true}
+      ]
+    },
+    "figures": {
+      "dpp_vs_da_manual_tem": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "dpp_vs_da_manual_tem", "position": [50, 50, 900, 500],
+        "x_scale": "log", "y_scale": "log", "x_limits": [], "y_limits": [], "x_ticks": [30, 50, 70, 100, 200, 300, 500, 700], "y_ticks": [],
+        "legend": {"location": "eastoutside", "orientation": "vertical", "columns": 1, "box": false, "interpreter": "tex"}
+      },
+      "primary_particle_distributions": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "primary_particle_distributions", "position": [100, 0, 850, 1300],
+        "x_scale": "linear", "y_scale": "linear", "x_limits": [], "y_limits": [], "x_ticks": [], "y_ticks": [],
+        "layout_padding": "compact", "tile_spacing": "compact", "ensemble_box_width": 0.25, "aggregate_box_width": 0.3, "kde_enabled": true, "kde_offset": 0.3, "kde_width": 0.25, "group_padding": 0.3
+      },
+      "appendix_a_primary_particle_distributions": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "appendix_a_primary_particle_distributions", "position": [100, 0, 850, 1300],
+        "x_scale": "linear", "y_scale": "linear", "x_limits": [], "y_limits": [], "x_ticks": [], "y_ticks": [],
+        "layout_padding": "compact", "tile_spacing": "compact", "ensemble_box_width": 0.25, "aggregate_box_width": 0.3, "kde_enabled": false, "group_padding": 0.5
+      },
+      "aggregate_metric_distributions": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "aggregate_metric_distributions", "position": [150, 50, 1050, 900],
+        "x_scale": "linear", "y_scale": "linear", "x_limits": [], "y_limits": [], "x_ticks": [], "y_ticks": [],
+        "layout_padding": "loose", "tile_spacing": "loose", "box_width": 0.25
+      },
+      "subaggregate_count_frequencies": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "subaggregate_count_frequencies", "position": [200, 150, 1000, 520],
+        "x_scale": "linear", "y_scale": "linear", "x_limits": [], "y_limits": [0, 100], "x_ticks": [], "y_ticks": [0, 20, 40, 60, 80, 100],
+        "legend": {"location": "eastoutside", "orientation": "vertical", "columns": 1, "box": false, "interpreter": "tex"}, "legend_item_token_size": [15, 15], "bar_width": 0.3, "condition_spacing": 0.75, "bar_edge_color": "none", "bar_line_width": 0,
+        "arrows": {"enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "target_bin_index": 1, "tail_fraction": 1.0, "shaft_length": 7, "minimum_head_clearance": 2, "maximum_tail_y": 98, "line_width": 1.8, "color": "#000000", "head_marker": "v", "head_marker_size": 7}
+      },
+      "collapsed_subaggregate_frequencies": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "collapsed_subaggregate_frequencies", "position": [200, 150, 1000, 520],
+        "x_scale": "linear", "y_scale": "linear", "x_limits": [], "y_limits": [0, 100], "x_ticks": [], "y_ticks": [0, 20, 40, 60, 80, 100],
+        "legend": {"location": "eastoutside", "orientation": "vertical", "columns": 1, "box": false, "interpreter": "tex"}, "legend_item_token_size": [15, 15], "bar_width": 0.3, "condition_spacing": 0.75, "bar_edge_color": "none", "bar_line_width": 0
+      },
+      "dpp_vs_da_by_hybridity": {
+        "enabled": true, "condition_ids": ["2024_08_19_low_agglomeration", "2025_02_06_high_agglomeration"], "file_name": "dpp_vs_da_by_hybridity", "position": [250, 200, 900, 500],
+        "x_scale": "log", "y_scale": "log", "x_limits": [], "y_limits": [], "x_ticks": [], "y_ticks": [],
+        "legend": {"location": "eastoutside", "orientation": "vertical", "columns": 1, "box": false, "interpreter": "tex"},
+        "categories": [
+          {"id": "eq_1", "label": "{\\it N}_{\\rm subagg} = 1", "lower": 1, "upper": 1, "include_lower": true, "include_upper": true, "color": "#0072B2", "marker": "^", "marker_size": 36, "line_width": 1.5},
+          {"id": "eq_2", "label": "{\\it N}_{\\rm subagg} = 2", "lower": 2, "upper": 2, "include_lower": true, "include_upper": true, "color": "#D62728", "marker": "s", "marker_size": 36, "line_width": 1.5},
+          {"id": "three_to_five", "label": "3 \\leq {\\it N}_{\\rm subagg} \\leq 5", "lower": 3, "upper": 5, "include_lower": true, "include_upper": true, "color": "#009E73", "marker": "h", "marker_size": 48, "line_width": 1.5},
+          {"id": "gt_5", "label": "{\\it N}_{\\rm subagg} > 5", "lower": 5, "upper": null, "include_lower": false, "include_upper": false, "color": "#222222", "marker": "o", "marker_size": 36, "line_width": 1.5}
+        ]
+      }
+    }
   },
   "entries": [
     {
-      "id": "2024_08_19_low_agglomeration",
-      "label": "Low agglomeration",
-      "entry_type": "low_agglomeration",
+      "id": "2024_08_19_low_agglomeration", "label": "Low agglomeration", "entry_type": "low_agglomeration", "enabled": true,
       "entry_dir": "../../data/tem_analysis/2024-08-19_low_agglomeration",
-      "aggregate": {
-        "file": "atems_aggregate_metrics/19AUG24_LAL_End_Slider.mat",
-        "variable": "Aggs"
-      },
-      "primary_particles": {
-        "folder": "imagej_primary_particle_metrics",
-        "file_pattern": "PFA_ET+NIT_LAL_19AUG24_End_%d.csv",
-        "area_column": "Area"
-      },
-      "aggregate_ids": {
-        "start": 1,
-        "end": 64
-      },
-      "plot": {
-        "marker": "^"
-      },
-      "include_in_model_inputs": true,
-      "include_in_publication_plots": true,
-      "include_in_hybridity_scatter": true
+      "aggregate": {"file": "atems_aggregate_metrics/19AUG24_LAL_End_Slider.mat", "variable": "Aggs"},
+      "primary_particles": {"folder": "imagej_primary_particle_metrics", "file_pattern": "PFA_ET+NIT_LAL_19AUG24_End_%d.csv", "area_column": "Area"},
+      "aggregate_ids": {"start": 1, "end": 64},
+      "style": {"color": "#0072B2", "secondary_color": "#005A9C", "box_face_color": "#A9D2E5", "median_color": "#004A80", "marker": "^", "marker_size": 36, "line_width": 1.5, "box_face_alpha": 0.45, "stack_colors": {"hybridity": ["#0072B2", "#2B8CC4", "#56A6D6", "#82BFE3", "#B3D9EF"], "collapse": ["#0072B2", "#2B8CC4", "#56A6D6", "#82BFE3", "#B3D9EF"]}},
+      "include_in_model_inputs": true
     },
     {
-      "id": "2025_02_06_high_agglomeration",
-      "label": "High agglomeration",
-      "entry_type": "high_agglomeration",
+      "id": "2025_02_06_high_agglomeration", "label": "High agglomeration", "entry_type": "high_agglomeration", "enabled": true,
       "entry_dir": "../../data/tem_analysis/2025-02-06_high_agglomeration",
-      "aggregate": {
-        "file": "atems_aggregate_metrics/06FEB25_ExAglom_Slider.mat",
-        "variable": "Aggs"
-      },
-      "primary_particles": {
-        "folder": "imagej_primary_particle_metrics",
-        "file_pattern": "PFA_ET+NIT_06FEB25_EXAGLOM_%d.csv",
-        "area_column": "Area"
-      },
+      "aggregate": {"file": "atems_aggregate_metrics/06FEB25_ExAglom_Slider.mat", "variable": "Aggs"},
+      "primary_particles": {"folder": "imagej_primary_particle_metrics", "file_pattern": "PFA_ET+NIT_06FEB25_EXAGLOM_%d.csv", "area_column": "Area"},
       "aggregate_ids": [1, 5, 9, 10, 12, 13, 14, 15, 16, 17, 18, 21, 22, 25, 29],
-      "plot": {
-        "marker": "s"
-      },
-      "include_in_model_inputs": true,
-      "include_in_publication_plots": true,
-      "include_in_hybridity_scatter": true
+      "style": {"color": "#D55E00", "secondary_color": "#C45100", "box_face_color": "#F2BD92", "median_color": "#A63F00", "marker": "s", "marker_size": 36, "line_width": 1.5, "box_face_alpha": 0.45, "stack_colors": {"hybridity": ["#D55E00", "#DF7224", "#E98A48", "#F1A66F", "#F7C49B"], "collapse": ["#D55E00", "#DF7224", "#E98A48", "#F1A66F", "#F7C49B"]}},
+      "include_in_model_inputs": true
     }
   ]
 }

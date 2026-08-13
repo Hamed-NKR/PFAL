@@ -172,12 +172,22 @@
     "simulation_marker_alpha": 0.15,
     "band_alpha": 0.25,
     "axis_line_width": 1.0,
+    "axes": {
+      "box": true,
+      "layer": "top",
+      "tick_length": [0.02, 0.02],
+      "tick_label_rotation": 0,
+      "label_position_mode": "auto",
+      "x_label_offset": 0.055,
+      "y_label_offset": 0.075
+    },
     "font": {
-      "family": "Segoe UI",
-      "fallback": "Arial",
-      "axis_size": 11,
-      "label_size": 16,
-      "legend_size": 13,
+      "family": "Segoe UI Semilight",
+      "fallback": "Segoe UI",
+      "axis_size": 13,
+      "label_size": 18,
+      "legend_size": 15,
+      "title_size": 18,
       "weight": "normal",
       "interpreter": "tex"
     },
@@ -186,10 +196,7 @@
       "columns": 1,
       "box": false,
       "orientation": "vertical",
-      "interpreter": "none",
-      "font_family": "Segoe UI Light",
-      "font_fallback": "Segoe UI",
-      "font_weight": "normal"
+      "interpreter": "none"
     },
     "dpp_vs_da": {
       "position": [50, 50, 900, 500],
@@ -208,6 +215,7 @@
     "pdf": true,
     "png": true,
     "png_resolution": 600,
+    "png_source": "pdf",
     "save_figures": false
   }
 }

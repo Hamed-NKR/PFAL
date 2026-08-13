@@ -83,8 +83,19 @@ cfg.outputs.pdf = logical_scalar(cfg.outputs, 'pdf', 'outputs.pdf');
 cfg.outputs.png = logical_scalar(cfg.outputs, 'png', 'outputs.png');
 cfg.outputs.png_resolution = positive_integer(cfg.outputs, ...
     'png_resolution', 'outputs.png_resolution');
+cfg.outputs.png_source = lower(optional_text(cfg.outputs, ...
+    'png_source', 'figure'));
+if ~ismember(cfg.outputs.png_source, {'figure', 'pdf'})
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidPNGSource', ...
+        'outputs.png_source must be figure or pdf.');
+end
 cfg.outputs.save_figures = logical_scalar(cfg.outputs, ...
     'save_figures', 'outputs.save_figures');
+if cfg.outputs.export && cfg.outputs.png && ...
+        strcmp(cfg.outputs.png_source, 'pdf') && ~cfg.outputs.pdf
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:MissingPDFForPNG', ...
+        'outputs.pdf must be enabled when outputs.png_source is pdf.');
+end
 
 end
 
@@ -242,6 +253,44 @@ figures.band_alpha = unit_interval(figures, 'band_alpha', ...
     'figures.band_alpha');
 figures.axis_line_width = optional_positive_scalar(figures, ...
     'axis_line_width', 1.0, 'figures.axis_line_width');
+if isfield(figures, 'axes') && isstruct(figures.axes)
+    axes_cfg = figures.axes;
+else
+    axes_cfg = struct();
+end
+if isfield(axes_cfg, 'box')
+    axes_cfg.box = logical_scalar(axes_cfg, 'box', 'figures.axes.box');
+else
+    axes_cfg.box = true;
+end
+axes_cfg.layer = lower(optional_text(axes_cfg, 'layer', 'top'));
+if ~ismember(axes_cfg.layer, {'top','bottom'})
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidAxisLayer', ...
+        'figures.axes.layer must be top or bottom.');
+end
+axes_cfg.tick_length = optional_numeric_vector(axes_cfg, ...
+    'tick_length', [0.02 0.02]);
+if numel(axes_cfg.tick_length) ~= 2 || any(axes_cfg.tick_length < 0)
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidTickLength', ...
+        'figures.axes.tick_length must contain two nonnegative values.');
+end
+axes_cfg.tick_label_rotation = optional_nonnegative_scalar(axes_cfg, ...
+    'tick_label_rotation', 0, 'figures.axes.tick_label_rotation');
+if axes_cfg.tick_label_rotation > 360
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidTickRotation', ...
+        'figures.axes.tick_label_rotation must not exceed 360 degrees.');
+end
+axes_cfg.label_position_mode = optional_text(axes_cfg, ...
+    'label_position_mode', 'auto');
+if ~ismember(lower(axes_cfg.label_position_mode), {'auto','manual'})
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidAxisStyle', ...
+        'figures.axes.label_position_mode must be auto or manual.');
+end
+axes_cfg.x_label_offset = optional_positive_scalar(axes_cfg, ...
+    'x_label_offset', 0.055, 'figures.axes.x_label_offset');
+axes_cfg.y_label_offset = optional_positive_scalar(axes_cfg, ...
+    'y_label_offset', 0.075, 'figures.axes.y_label_offset');
+figures.axes = axes_cfg;
 figures.font = require_struct(figures, 'font', 'figures.font');
 figures.font.family = require_text(figures.font, 'family', ...
     'figures.font.family');
@@ -253,8 +302,14 @@ figures.font.label_size = positive_scalar(figures.font, ...
     'label_size', 'figures.font.label_size');
 figures.font.legend_size = positive_scalar(figures.font, ...
     'legend_size', 'figures.font.legend_size');
+figures.font.title_size = optional_positive_scalar(figures.font, ...
+    'title_size', figures.font.label_size, 'figures.font.title_size');
 figures.font.weight = require_text(figures.font, 'weight', ...
     'figures.font.weight');
+if ~ismember(lower(figures.font.weight), {'normal','bold'})
+    error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidFontWeight', ...
+        'figures.font.weight must be normal or bold.');
+end
 figures.font.interpreter = lower(require_text(figures.font, ...
     'interpreter', 'figures.font.interpreter'));
 if ~ismember(figures.font.interpreter, {'tex', 'none', 'latex'})
@@ -286,7 +341,7 @@ figures.legend.font_family = optional_text(figures.legend, ...
 figures.legend.font_fallback = optional_text(figures.legend, ...
     'font_fallback', figures.font.fallback);
 figures.legend.font_weight = lower(optional_text(figures.legend, ...
-    'font_weight', 'normal'));
+    'font_weight', figures.font.weight));
 if ~ismember(figures.legend.font_weight, {'normal', 'bold'})
     error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidLegendFontWeight', ...
         'figures.legend.font_weight must be normal or bold.');
@@ -364,6 +419,18 @@ function out = optional_positive_scalar(source, field_name, default_value, label
 out = default_value;
 if isfield(source, field_name) && ~isempty(source.(field_name))
     out = positive_scalar(source, field_name, label);
+end
+end
+
+function out = optional_nonnegative_scalar(source, field_name, ...
+    default_value, label)
+out = default_value;
+if isfield(source, field_name) && ~isempty(source.(field_name))
+    out = finite_scalar(source, field_name, label);
+    if out < 0
+        error('PFAL:LOAD_MAIN_VALID_CONFIG:InvalidNonnegativeNumber', ...
+            '%s must be nonnegative.', label);
+    end
 end
 end
 

@@ -51,9 +51,9 @@ if cfg.outputs.export
         mkdir(cfg.outputs.root);
     end
     export_validation_figure(figure_dpp, cfg.outputs.root, ...
-        'validation_dpp_vs_da', cfg.outputs);
+        'validation_dpp_vs_da', cfg.outputs, cfg.figures, font_name);
     export_validation_figure(figure_density, cfg.outputs.root, ...
-        'validation_rho_eff_vs_dm', cfg.outputs);
+        'validation_rho_eff_vs_dm', cfg.outputs, cfg.figures, font_name);
 end
 
 writetable(metrics_table, fullfile(run_dir, 'validation_metrics.csv'));
@@ -254,8 +254,7 @@ end
 fig = create_figure(cfg.figures, cfg.figures.dpp_vs_da, font_name);
 ax = axes(fig);
 hold(ax, 'on');
-    configure_axes(ax, font_name, cfg.figures.font, ...
-        cfg.figures.axis_line_width);
+    configure_axes(ax, font_name, cfg.figures);
 axis_text = scientific_axis_text(cfg.figures.font.interpreter);
 xlabel(ax, axis_text.da, 'Interpreter', cfg.figures.font.interpreter, ...
     'FontName', font_name, 'FontSize', cfg.figures.font.label_size);
@@ -339,6 +338,7 @@ apply_limits(ax, panel_conditions, 'dpp_vs_da', cfg.figures.dpp_vs_da);
 make_legend(ax, numerical_handles, fit_handles, experiment_handles, ...
     reference_handle, numerical_labels, fit_labels, experiment_labels, ...
     reference_label, cfg.figures);
+finalize_figure_text(fig, cfg.figures, font_name);
 
 metrics = vertcat(metric_cells{:});
 predictions = vertcat(prediction_cells{:});
@@ -358,8 +358,7 @@ end
 fig = create_figure(cfg.figures, cfg.figures.rho_eff_vs_dm, font_name);
 ax = axes(fig);
 hold(ax, 'on');
-    configure_axes(ax, font_name, cfg.figures.font, ...
-        cfg.figures.axis_line_width);
+    configure_axes(ax, font_name, cfg.figures);
 axis_text = scientific_axis_text(cfg.figures.font.interpreter);
 xlabel(ax, axis_text.dm, 'Interpreter', cfg.figures.font.interpreter, ...
     'FontName', font_name, 'FontSize', cfg.figures.font.label_size);
@@ -431,6 +430,7 @@ apply_limits(ax, panel_conditions, 'rho_eff_vs_dm', ...
 make_legend(ax, numerical_handles, fit_handles, experiment_handles, ...
     reference_handle, numerical_labels, fit_labels, experiment_labels, ...
     reference_label, cfg.figures);
+finalize_figure_text(fig, cfg.figures, font_name);
 
 metrics = vertcat(metric_cells{:});
 predictions = vertcat(prediction_cells{:});
@@ -680,14 +680,68 @@ fig = figure('Visible', figures_cfg.visible, 'Color', 'white', ...
 
 end
 
-function configure_axes(ax, font_name, font_cfg, axis_line_width)
+function configure_axes(ax, font_name, figures_cfg)
 %CONFIGURE_AXES Apply shared log-axis styling to a validation panel.
 
-set(ax, 'XScale', 'log', 'YScale', 'log', 'Box', 'on', ...
-    'TickLength', [0.02, 0.02], 'FontName', font_name, ...
+font_cfg = figures_cfg.font;
+if figures_cfg.axes.box
+    box_state = 'on';
+else
+    box_state = 'off';
+end
+set(ax, 'XScale', 'log', 'YScale', 'log', 'Box', box_state, ...
+    'TickLength', figures_cfg.axes.tick_length, 'FontName', font_name, ...
     'FontSize', font_cfg.axis_size, 'FontWeight', font_cfg.weight, ...
-    'TickLabelInterpreter', font_cfg.interpreter, 'Layer', 'top', ...
-    'LineWidth', axis_line_width);
+    'TickLabelInterpreter', font_cfg.interpreter, ...
+    'Layer', figures_cfg.axes.layer, ...
+    'LineWidth', figures_cfg.axis_line_width);
+
+end
+
+function finalize_figure_text(fig, figures_cfg, font_name)
+%FINALIZE_FIGURE_TEXT Enforce configured fonts, weights, and label offsets.
+
+axes_handles = findall(fig, 'Type', 'axes');
+for i = 1:numel(axes_handles)
+    ax = axes_handles(i);
+    set(ax, 'FontName', font_name, ...
+        'FontWeight', figures_cfg.font.weight, ...
+        'XTickLabelRotation', figures_cfg.axes.tick_label_rotation);
+    if strcmpi(figures_cfg.axes.label_position_mode, 'manual')
+        position_axis_label(ax.XLabel, [0.5, ...
+            -figures_cfg.axes.x_label_offset]);
+        position_axis_label(ax.YLabel, [...
+            -figures_cfg.axes.y_label_offset, 0.5]);
+    end
+    set(ax.Title, 'FontName', font_name, ...
+        'FontWeight', figures_cfg.font.weight);
+end
+
+text_handles = findall(fig, 'Type', 'text');
+set(text_handles, 'FontName', font_name, ...
+    'FontWeight', figures_cfg.font.weight);
+
+legend_font_cfg = struct('family', figures_cfg.legend.font_family, ...
+    'fallback', figures_cfg.legend.font_fallback);
+legend_font_name = resolve_font(legend_font_cfg);
+legend_handles = findall(fig, 'Type', 'legend');
+set(legend_handles, 'FontName', legend_font_name, ...
+    'FontWeight', figures_cfg.legend.font_weight, ...
+    'FontAngle', 'normal');
+drawnow;
+
+end
+
+function position_axis_label(label_handle, normalized_xy)
+%POSITION_AXIS_LABEL Apply a normalized offset to a nonempty axis label.
+
+if isempty(label_handle.String)
+    return
+end
+label_handle.Units = 'normalized';
+position = label_handle.Position;
+position(1:2) = normalized_xy;
+label_handle.Position = position;
 
 end
 
@@ -850,18 +904,29 @@ output = struct('id', source.id, 'resolved_file', source.resolved_file, ...
 
 end
 
-function export_validation_figure(fig, output_root, base_name, output_cfg)
+function export_validation_figure(fig, output_root, base_name, output_cfg, ...
+        figures_cfg, font_name)
 %EXPORT_VALIDATION_FIGURE Write stable PDF, PNG, and optional FIG artifacts.
 
-if output_cfg.pdf
-    exportgraphics(fig, fullfile(output_root, [base_name, '.pdf']), ...
-        'ContentType', 'vector');
-end
-if output_cfg.png
-    exportgraphics(fig, fullfile(output_root, [base_name, '.png']), ...
+% Direct raster export remains available for installations without Poppler.
+% The paper profile rasterizes the final vector PDF so both formats share the
+% same embedded typeface, layout, colors, and line geometry.
+pdf_path = fullfile(output_root, [base_name, '.pdf']);
+png_path = fullfile(output_root, [base_name, '.png']);
+if output_cfg.png && strcmp(output_cfg.png_source, 'figure')
+    finalize_figure_text(fig, figures_cfg, font_name);
+    exportgraphics(fig, png_path, ...
         'Resolution', output_cfg.png_resolution);
 end
+if output_cfg.pdf
+    finalize_figure_text(fig, figures_cfg, font_name);
+    exportgraphics(fig, pdf_path, 'ContentType', 'vector');
+end
+if output_cfg.png && strcmp(output_cfg.png_source, 'pdf')
+    UTILS.RASTERIZE_PDF(pdf_path, png_path, output_cfg.png_resolution);
+end
 if output_cfg.save_figures
+    finalize_figure_text(fig, figures_cfg, font_name);
     savefig(fig, fullfile(output_root, [base_name, '.fig']));
 end
 
