@@ -165,7 +165,11 @@ Calling `UTILS.RESUME_LD2_V3` without arguments prompts for both values.
 `main_tem_analysis_v1.m` processes configured TEM datasets independently of
 the LD simulation pipeline. Each config entry identifies an aggregate MAT file
 (the example expects an `Aggs` variable), ImageJ primary-particle area CSV
-files, and a complete publication style. Figure-specific `condition_ids`
+files, and a complete publication style. `aggregate_ids` selects the aggregate
+MAT records used for morphology summaries. The optional
+`primary_particle_aggregate_ids` field selects the subset with manual
+primary-particle CSVs; when omitted, it inherits `aggregate_ids` for backward
+compatibility. Figure-specific `condition_ids`
 control which enabled conditions appear and in what order. The default profiles
 select only low and high agglomeration. A collapse condition can be added later
 by defining one entry and adding its ID to the required figure lists; plotting
@@ -223,6 +227,10 @@ direct raster renderer. Shared axis-label offsets and tick-label rotation are
 configurable under `plots.axes`; the paper profile uses horizontal, multiline
 condition labels.
 
+Figures are constructed off-screen at their configured `position` dimensions
+before export. This preserves tall publication aspect ratios even when the
+interactive MATLAB window cannot fit them on the current monitor.
+
 With the example output settings, the main machine-readable files are:
 
 ```text
@@ -231,13 +239,23 @@ data/main_tem_analysis/model_inputs.csv
 data/main_tem_analysis/summary_table.csv
 data/main_tem_analysis/hybridity_frequency_summary.csv
 data/main_tem_analysis/collapse_frequency_summary.csv
+data/main_tem_analysis/subaggregate_count_distribution_summary.csv
 ```
 
+`data/tem_analysis/` contains source MAT and ImageJ files and is never written
+by the workflow. `data/main_tem_analysis/` contains derived outputs created by
+`main_tem_analysis_v1`; the similar names identify input and output roles rather
+than duplicate datasets. The saved MAT file keeps `aggregate_table` for
+dpp-dependent aggregates and `morphology_table` for configured aggregate MAT
+records.
+
 The exported figure set includes the manual TEM correlation, both
-primary-particle Appendix variants, aggregate metrics, separate stacked-
+primary-particle Appendix variants, aggregate metrics, a mirrored exact-count
+lollipop distribution for a configured pair of conditions, separate stacked-
 frequency figures for subaggregate counts and collapsed-subaggregate fractions,
-and the subaggregate-category correlation. Figures are written to
-`results/main_tem_analysis/`.
+and the subaggregate-category correlation. The mirrored distribution uses a
+colored condition legend and independently configurable major and minor x-axis
+grids. Figures are written to `results/main_tem_analysis/`.
 
 ### Experimental Validation
 

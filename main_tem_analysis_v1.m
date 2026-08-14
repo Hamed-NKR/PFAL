@@ -27,6 +27,7 @@ active_entries = cfg_tem.entries([cfg_tem.entries.enabled]);
 n_entries = numel(active_entries);
 entry_result_cells = cell(n_entries, 1);
 aggregate_tables = cell(n_entries, 1);
+morphology_tables = cell(n_entries, 1);
 primary_tables = cell(n_entries, 1);
 summary_tables = cell(n_entries, 1);
 model_input_tables = cell(n_entries, 1);
@@ -34,6 +35,7 @@ model_input_tables = cell(n_entries, 1);
 for i = 1:n_entries
     entry_result_cells{i} = process_tem_entry(active_entries(i), cfg_tem.analysis);
     aggregate_tables{i} = entry_result_cells{i}.aggregate_table;
+    morphology_tables{i} = entry_result_cells{i}.morphology_table;
     primary_tables{i} = entry_result_cells{i}.primary_table;
     summary_tables{i} = entry_result_cells{i}.summary_table;
     model_input_tables{i} = entry_result_cells{i}.model_inputs;
@@ -41,6 +43,7 @@ end
 
 entry_results = vertcat(entry_result_cells{:});
 aggregate_table = vertcat_nonempty(aggregate_tables);
+morphology_table = vertcat_nonempty(morphology_tables);
 primary_table = vertcat_nonempty(primary_tables);
 summary_table = vertcat_nonempty(summary_tables);
 model_inputs = vertcat_nonempty(model_input_tables);
@@ -53,6 +56,8 @@ per_aggregate_dpp_summary = plot_artifacts.per_aggregate_dpp_summary;
 per_aggregate_sigmapp_summary = plot_artifacts.per_aggregate_sigmapp_summary;
 hybridity_frequency_summary = plot_artifacts.hybridity_frequency_summary;
 collapse_frequency_summary = plot_artifacts.collapse_frequency_summary;
+subaggregate_count_distribution_summary = ...
+    plot_artifacts.subaggregate_count_distribution_summary;
 plot_diagnostics = plot_artifacts.plot_diagnostics;
 
 %% Export machine-readable outputs
@@ -65,10 +70,12 @@ metadata = struct( ...
 
 save(fullfile(cfg_tem.outputs.data_root, cfg_tem.outputs.mat_file), ...
     'cfg_tem', 'metadata', 'entry_results', 'aggregate_table', ...
-    'primary_table', 'summary_table', 'model_inputs', 'plot_artifacts', ...
+    'morphology_table', 'primary_table', 'summary_table', 'model_inputs', ...
+    'plot_artifacts', ...
     'ensemble_primary_summary', 'per_aggregate_dpp_summary', ...
     'per_aggregate_sigmapp_summary', 'hybridity_frequency_summary', ...
-    'collapse_frequency_summary', 'plot_diagnostics', '-v7.3')
+    'collapse_frequency_summary', ...
+    'subaggregate_count_distribution_summary', 'plot_diagnostics', '-v7.3')
 
 writetable(summary_table, fullfile(cfg_tem.outputs.data_root, ...
     cfg_tem.outputs.summary_csv))
@@ -84,6 +91,11 @@ write_optional_table(hybridity_frequency_summary, fullfile( ...
     cfg_tem.outputs.data_root, 'hybridity_frequency_summary.csv'))
 write_optional_table(collapse_frequency_summary, fullfile( ...
     cfg_tem.outputs.data_root, 'collapse_frequency_summary.csv'))
+distribution_cfg = ...
+    cfg_tem.plots.figures.subaggregate_count_distribution;
+write_optional_table(subaggregate_count_distribution_summary, fullfile( ...
+    cfg_tem.outputs.data_root, ...
+    [distribution_cfg.file_name '_summary.csv']))
 write_optional_table(plot_diagnostics, fullfile( ...
     cfg_tem.outputs.data_root, 'plot_diagnostics.csv'))
 
@@ -115,22 +127,35 @@ end
 Aggs = loaded.(entry.aggregate.variable);
 
 if isempty(entry.aggregate_ids)
-    aggregate_ids = (1:numel(Aggs)).';
+    morphology_ids = (1:numel(Aggs)).';
 else
-    aggregate_ids = entry.aggregate_ids(:);
+    morphology_ids = entry.aggregate_ids(:);
+end
+if isempty(entry.primary_particle_aggregate_ids)
+    primary_particle_ids = (1:numel(Aggs)).';
+else
+    primary_particle_ids = entry.primary_particle_aggregate_ids(:);
 end
 
-if any(aggregate_ids > numel(Aggs))
+if any(morphology_ids > numel(Aggs))
     error('PFAL:main_tem_analysis_v1:AggregateIdOutOfRange', ...
-        'Entry "%s" includes aggregate ids larger than numel(Aggs) = %d.', ...
+        ['Entry "%s" includes morphology aggregate ids larger than ', ...
+        'numel(Aggs) = %d.'], ...
+        entry.id, numel(Aggs));
+end
+if any(primary_particle_ids > numel(Aggs))
+    error('PFAL:main_tem_analysis_v1:PrimaryParticleAggregateIdOutOfRange', ...
+        ['Entry "%s" includes primary-particle aggregate ids larger than ', ...
+        'numel(Aggs) = %d.'], ...
         entry.id, numel(Aggs));
 end
 
 aggregate_rows = table();
 primary_rows = table();
+morphology_rows = build_morphology_table(Aggs, morphology_ids, entry);
 
-for j = 1:numel(aggregate_ids)
-    agg_id = aggregate_ids(j);
+for j = 1:numel(primary_particle_ids)
+    agg_id = primary_particle_ids(j);
     csv_file = fullfile(entry.primary_particles.folder, ...
         sprintf(entry.primary_particles.file_pattern, agg_id));
 
@@ -246,21 +271,50 @@ if isempty(aggregate_rows)
         'Entry "%s" did not produce any aggregate rows.', entry.id);
 end
 
-summary_table = summarize_entry(entry, aggregate_rows, primary_rows, ...
-    analysis_cfg);
+summary_table = summarize_entry(entry, aggregate_rows, morphology_rows, ...
+    primary_rows, analysis_cfg);
 model_inputs = build_model_inputs(entry, aggregate_rows);
 
 entry_result = struct();
 entry_result.entry = entry;
 entry_result.aggregate_table = aggregate_rows;
+entry_result.morphology_table = morphology_rows;
 entry_result.primary_table = primary_rows;
 entry_result.summary_table = summary_table;
 entry_result.model_inputs = model_inputs;
 
 end
 
+function morphology_table = build_morphology_table(Aggs, aggregate_ids, entry)
+
+% Morphology records are loaded directly from the aggregate MAT file and do
+% not depend on the availability of manually sized primary-particle CSVs.
+n_rows = numel(aggregate_ids);
+entry_id = repmat({entry.id}, n_rows, 1);
+entry_label = repmat({entry.label}, n_rows, 1);
+aggregate_id = aggregate_ids(:);
+da_nm = NaN(n_rows, 1);
+n_subagg = NaN(n_rows, 1);
+n_colaps = NaN(n_rows, 1);
+ca = NaN(n_rows, 1);
+zbar_opt = NaN(n_rows, 1);
+sbar_opt = NaN(n_rows, 1);
+for i = 1:n_rows
+    agg_id = aggregate_id(i);
+    da_nm(i) = optional_agg_numeric_field(Aggs, agg_id, 'da');
+    n_subagg(i) = optional_agg_numeric_field(Aggs, agg_id, 'n_subagg');
+    n_colaps(i) = optional_agg_numeric_field(Aggs, agg_id, 'n_colaps');
+    ca(i) = optional_agg_numeric_field(Aggs, agg_id, 'ca');
+    zbar_opt(i) = optional_agg_numeric_field(Aggs, agg_id, 'zbar_opt');
+    sbar_opt(i) = optional_agg_numeric_field(Aggs, agg_id, 'sbar_opt');
+end
+morphology_table = table(entry_id, entry_label, aggregate_id, da_nm, ...
+    n_subagg, n_colaps, ca, zbar_opt, sbar_opt);
+
+end
+
 function summary_table = summarize_entry(entry, aggregate_table, ...
-    primary_table, analysis_cfg)
+    morphology_table, primary_table, analysis_cfg)
 
 [GM_dpp_ens_unweighted, GSD_dpp_ens_unweighted, CI_dpp_ens_unweighted] = ...
     UTILS.GEOMSTATS(primary_table.dpp_nm);
@@ -279,6 +333,7 @@ summary_table = table( ...
     {entry.id}, ...
     {entry.label}, ...
     height(aggregate_table), ...
+    height(morphology_table), ...
     height(primary_table), ...
     analysis_cfg.coverage_threshold, ...
     analysis_cfg.logistic_bandwidth, ...
@@ -291,7 +346,8 @@ summary_table = table( ...
     GM_dbarpp, GSD_dbarpp, CI_dbarpp(1), CI_dbarpp(2), ...
     GM_sigmapp, GSD_sigmapp, CI_sigmapp(1), CI_sigmapp(2), ...
     GM_da, GSD_da, CI_da(1), CI_da(2), ...
-    'VariableNames', {'entry_id', 'entry_label', 'n_aggregates', ...
+    'VariableNames', {'entry_id', 'entry_label', ...
+    'n_primary_particle_aggregates', 'n_morphology_aggregates', ...
     'n_primaries', 'coverage_threshold', 'logistic_bandwidth', ...
     'GM_dpp_ens_unweighted', 'GSD_dpp_ens_unweighted', ...
     'CI95_low_dpp_ens_unweighted', 'CI95_high_dpp_ens_unweighted', ...
@@ -400,6 +456,8 @@ plot_artifacts.hybridity_frequency_summary = ...
 plot_artifacts.collapse_frequency_summary = ...
     build_binned_frequency_summary(entry_results, 'collapse_fraction', ...
     cfg_tem.plots.frequency_bins.collapse, 'collapse_fraction');
+plot_artifacts.subaggregate_count_distribution_summary = ...
+    build_exact_subaggregate_count_summary(entry_results);
 plot_artifacts.plot_diagnostics = build_plot_diagnostics( ...
     entry_results, entry_styles, cfg_tem);
 
@@ -423,6 +481,10 @@ if figure_enabled(cfg_tem, 'appendix_a_primary_particle_distributions')
 end
 if figure_enabled(cfg_tem, 'aggregate_metric_distributions')
     plot_aggregate_metric_distributions(entry_results, cfg_tem, plot_artifacts)
+end
+if figure_enabled(cfg_tem, 'subaggregate_count_distribution')
+    plot_subaggregate_count_distribution(entry_results, cfg_tem, ...
+        plot_artifacts)
 end
 if figure_enabled(cfg_tem, 'subaggregate_count_frequencies')
     plot_subaggregate_count_frequencies(entry_results, cfg_tem, plot_artifacts)
@@ -534,9 +596,9 @@ yticks(ax, configured_axis_ticks(cfg_tem, figure_id, ...
 % Panel 2 shows the geometric mean calculated independently within each
 % aggregate and therefore uses aggregate counts in the condition labels.
 nexttile(layout)
-plot_publication_box_metric(entry_results, styles, 'dbarpp_nm', ...
+    plot_publication_box_metric(entry_results, styles, 'dbarpp_nm', ...
     scientific_axis_label('dpp', cfg_tem.plots.font.interpreter), ...
-    figure_cfg.aggregate_box_width, cfg_tem, false)
+    figure_cfg.aggregate_box_width, cfg_tem, 'aggregate_table', false)
 all_dbarpp = collect_aggregate_metric(entry_results, 'dbarpp_nm');
 ylim(configured_axis_limit(cfg_tem, figure_id, ...
     'aggregate_mean_dpp_ylim', [8 24], all_dbarpp, 'linear'))
@@ -544,9 +606,9 @@ ylim(configured_axis_limit(cfg_tem, figure_id, ...
 % Panel 3 reports the within-aggregate geometric standard deviation, which
 % is the direct measure of primary-particle uniformity used in the paper.
 nexttile(layout)
-plot_publication_box_metric(entry_results, styles, 'sigmapp', ...
+    plot_publication_box_metric(entry_results, styles, 'sigmapp', ...
     scientific_axis_label('sigmapp', cfg_tem.plots.font.interpreter), ...
-    figure_cfg.aggregate_box_width, cfg_tem, false)
+    figure_cfg.aggregate_box_width, cfg_tem, 'aggregate_table', false)
 all_sigmapp = collect_aggregate_metric(entry_results, 'sigmapp');
 ylim(configured_axis_limit(cfg_tem, figure_id, ...
     'sigmapp_ylim', [1.11 1.62], all_sigmapp, 'linear'))
@@ -562,7 +624,7 @@ function plot_aggregate_metric_distributions(entry_results, cfg_tem, ...
 
 [entry_results, styles] = select_figure_entries(entry_results, ...
     plot_artifacts.entry_styles, cfg_tem, 'aggregate_metric_distributions');
-assert_required_plot_metric(entry_results, 'da_nm', ...
+assert_required_morphology_metric(entry_results, 'da_nm', ...
     'aggregate_metric_distributions')
 
 figure_cfg = cfg_tem.plots.figures.aggregate_metric_distributions;
@@ -570,31 +632,31 @@ figure_cfg = cfg_tem.plots.figures.aggregate_metric_distributions;
 layout = tiledlayout(fig, 2, 2, 'Padding', figure_cfg.layout_padding, ...
     'TileSpacing', figure_cfg.tile_spacing);
 
-% The 2x2 layout separates aggregate size from morphology. Rows with
-% nonpositive subaggregate counts are excluded from morphology metrics
-% because they do not have a valid subaggregate segmentation.
+% The 2x2 layout separates aggregate size from morphology. Explicitly
+% nonpositive subaggregate counts are excluded; missing subaggregate counts
+% do not exclude otherwise valid aggregate-scale morphology measurements.
 nexttile(layout)
 plot_publication_box_metric(entry_results, styles, 'da_nm', ...
     scientific_axis_label('da', cfg_tem.plots.font.interpreter), ...
-    figure_cfg.box_width, cfg_tem, true)
+    figure_cfg.box_width, cfg_tem, 'morphology_table', true)
 set(gca, 'YScale', 'log')
-all_da = collect_aggregate_metric(entry_results, 'da_nm', true);
+all_da = collect_morphology_metric(entry_results, 'da_nm', true);
 ylim(configured_axis_limit(cfg_tem, 'aggregate_metric_distributions', ...
     'da_ylim', nice_log_limits(all_da, [0.85 1.15]), all_da, 'log'))
 
 nexttile(layout)
 plot_publication_box_metric(entry_results, styles, 'ca', ...
     scientific_axis_label('ca', cfg_tem.plots.font.interpreter), ...
-    figure_cfg.box_width, cfg_tem, true)
-all_ca = collect_aggregate_metric(entry_results, 'ca', true);
+    figure_cfg.box_width, cfg_tem, 'morphology_table', true)
+all_ca = collect_morphology_metric(entry_results, 'ca', true);
 ylim(configured_axis_limit(cfg_tem, 'aggregate_metric_distributions', ...
     'ca_ylim', nice_linear_limits(all_ca, 0.08, [0 1]), all_ca, 'linear'))
 
 nexttile(layout)
 plot_publication_box_metric(entry_results, styles, 'zbar_opt', ...
     scientific_axis_label('zbar', cfg_tem.plots.font.interpreter), ...
-    figure_cfg.box_width, cfg_tem, true)
-all_zbar = collect_aggregate_metric(entry_results, 'zbar_opt', true);
+    figure_cfg.box_width, cfg_tem, 'morphology_table', true)
+all_zbar = collect_morphology_metric(entry_results, 'zbar_opt', true);
 ylim(configured_axis_limit(cfg_tem, 'aggregate_metric_distributions', ...
     'zbar_opt_ylim', nice_linear_limits(all_zbar, 0.08, []), all_zbar, ...
     'linear'))
@@ -602,13 +664,118 @@ ylim(configured_axis_limit(cfg_tem, 'aggregate_metric_distributions', ...
 nexttile(layout)
 plot_publication_box_metric(entry_results, styles, 'sbar_opt', ...
     scientific_axis_label('sbar', cfg_tem.plots.font.interpreter), ...
-    figure_cfg.box_width, cfg_tem, true)
-all_sbar = collect_aggregate_metric(entry_results, 'sbar_opt', true);
+    figure_cfg.box_width, cfg_tem, 'morphology_table', true)
+all_sbar = collect_morphology_metric(entry_results, 'sbar_opt', true);
 ylim(configured_axis_limit(cfg_tem, 'aggregate_metric_distributions', ...
     'sbar_opt_ylim', nice_linear_limits(all_sbar, 0.08, []), all_sbar, ...
     'linear'))
 
 export_figure(fig, cfg_tem, figure_cfg.file_name)
+
+end
+
+function plot_subaggregate_count_distribution(entry_results, cfg_tem, ...
+    plot_artifacts)
+
+figure_id = 'subaggregate_count_distribution';
+[entry_results, styles] = select_figure_entries(entry_results, ...
+    plot_artifacts.entry_styles, cfg_tem, figure_id);
+assert_required_morphology_metric(entry_results, 'n_subagg', figure_id)
+
+figure_cfg = cfg_tem.plots.figures.(figure_id);
+[support, frequency_values] = exact_count_frequency_matrix( ...
+    plot_artifacts.subaggregate_count_distribution_summary, entry_results);
+[fig, ax, font_name] = create_publication_figure(cfg_tem, figure_cfg);
+hold(ax, 'on')
+
+legend_handles = gobjects(2, 1);
+signed_frequency = [-frequency_values(:, 1), frequency_values(:, 2)];
+for i = 1:2
+    condition_color = hex_to_rgb(styles(i).color);
+    present = frequency_values(:, i) > 0;
+    present_support = support(present);
+    present_frequency = signed_frequency(present, i);
+    for j = 1:numel(present_support)
+        line(ax, [0 present_frequency(j)], ...
+            [present_support(j) present_support(j)], ...
+            'Color', condition_color, ...
+            'LineWidth', figure_cfg.stem_line_width, ...
+            'HandleVisibility', 'off')
+    end
+    plot(ax, present_frequency, present_support, 'o', ...
+        'LineStyle', 'none', ...
+        'Color', condition_color, ...
+        'MarkerSize', figure_cfg.marker_size, ...
+        'MarkerFaceColor', configured_color(figure_cfg.marker_face_color), ...
+        'LineWidth', figure_cfg.marker_edge_width, ...
+        'HandleVisibility', 'off')
+    legend_handles(i) = plot(ax, NaN, NaN, '-o', ...
+        'Color', condition_color, ...
+        'LineWidth', figure_cfg.stem_line_width, ...
+        'MarkerSize', figure_cfg.marker_size, ...
+        'MarkerFaceColor', configured_color(figure_cfg.marker_face_color));
+end
+
+configure_axes(ax, cfg_tem, figure_cfg)
+if isempty(figure_cfg.x_limits)
+    frequency_limit = max(10, 10 * ceil(max(frequency_values, [], 'all') / 10));
+    xlim(ax, [-frequency_limit frequency_limit])
+end
+if isempty(figure_cfg.y_limits)
+    ylim(ax, [min(support) - 0.5, max(support) + 0.5])
+end
+apply_configured_axis(ax, figure_cfg)
+if ~isempty(figure_cfg.x_minor_ticks)
+    ax.XAxis.MinorTickValues = figure_cfg.x_minor_ticks;
+end
+apply_mirrored_frequency_grid(ax, figure_cfg.grid)
+xline(ax, 0, figure_cfg.zero_line.line_style, ...
+    'Color', hex_to_rgb(figure_cfg.zero_line.color), ...
+    'LineWidth', figure_cfg.zero_line.line_width, ...
+    'HandleVisibility', 'off');
+
+tick_values = ax.XTick;
+tick_labels = arrayfun(@(value) sprintf('%g', abs(value)), ...
+    tick_values, 'UniformOutput', false);
+set(ax, 'XTickLabel', tick_labels)
+xlabel(ax, 'Frequency [%]', ...
+    'Interpreter', cfg_tem.plots.font.interpreter, ...
+    'FontName', font_name, 'FontSize', cfg_tem.plots.font.label_size)
+ylabel(ax, scientific_axis_label('n_subagg', ...
+    cfg_tem.plots.font.interpreter), ...
+    'Interpreter', cfg_tem.plots.font.interpreter, ...
+    'FontName', font_name, 'FontSize', cfg_tem.plots.font.label_size)
+
+legend_labels = arrayfun(@(entry) tex_plain_text(entry.entry.label), ...
+    entry_results, 'UniformOutput', false);
+lgd = legend(ax, legend_handles, legend_labels, ...
+    'Interpreter', figure_cfg.legend.interpreter, ...
+    'FontName', font_name, ...
+    'FontSize', cfg_tem.plots.font.legend_size, ...
+    'FontWeight', cfg_tem.plots.font.weight, ...
+    'Location', figure_cfg.legend.location, ...
+    'Orientation', figure_cfg.legend.orientation, ...
+    'NumColumns', figure_cfg.legend.columns, ...
+    'Box', logical_to_on_off(figure_cfg.legend.box));
+lgd.ItemTokenSize = figure_cfg.legend_item_token_size;
+
+export_figure(fig, cfg_tem, figure_cfg.file_name)
+
+end
+
+function apply_mirrored_frequency_grid(ax, grid_cfg)
+
+set(ax, ...
+    'XGrid', logical_to_on_off(grid_cfg.x_major), ...
+    'XMinorGrid', logical_to_on_off(grid_cfg.x_minor), ...
+    'XMinorTick', logical_to_on_off(grid_cfg.x_minor), ...
+    'YGrid', logical_to_on_off(grid_cfg.y_major), ...
+    'GridColor', hex_to_rgb(grid_cfg.major_color), ...
+    'MinorGridColor', hex_to_rgb(grid_cfg.minor_color), ...
+    'GridAlpha', grid_cfg.major_alpha, ...
+    'MinorGridAlpha', grid_cfg.minor_alpha, ...
+    'GridLineStyle', grid_cfg.major_line_style, ...
+    'MinorGridLineStyle', grid_cfg.minor_line_style)
 
 end
 
@@ -618,7 +785,7 @@ function plot_subaggregate_count_frequencies(entry_results, cfg_tem, ...
 figure_id = 'subaggregate_count_frequencies';
 [entry_results, ~] = select_figure_entries(entry_results, ...
     plot_artifacts.entry_styles, cfg_tem, figure_id);
-assert_required_plot_metric(entry_results, 'n_subagg', figure_id)
+assert_required_morphology_metric(entry_results, 'n_subagg', figure_id)
 
 bins = cfg_tem.plots.frequency_bins.hybridity;
 [frequency_values, valid_n] = frequency_matrix( ...
@@ -650,8 +817,8 @@ function plot_collapsed_subaggregate_frequencies(entry_results, cfg_tem, ...
 figure_id = 'collapsed_subaggregate_frequencies';
 [entry_results, ~] = select_figure_entries(entry_results, ...
     plot_artifacts.entry_styles, cfg_tem, figure_id);
-assert_required_plot_metric(entry_results, 'n_subagg', figure_id)
-assert_required_plot_metric(entry_results, 'n_colaps', figure_id)
+assert_required_morphology_metric(entry_results, 'n_subagg', figure_id)
+assert_required_morphology_metric(entry_results, 'n_colaps', figure_id)
 
 bins = cfg_tem.plots.frequency_bins.collapse;
 [frequency_values, valid_n] = frequency_matrix( ...
@@ -843,17 +1010,18 @@ end
 end
 
 function plot_publication_box_metric(entry_results, styles, metric_name, ...
-    y_label, box_width, cfg_tem, filter_hybrid_rows)
+    y_label, box_width, cfg_tem, table_field, filter_hybrid_rows)
 
 values = [];
 groups = [];
-labels = condition_labels(entry_results, 'aggregate');
+labels = condition_labels(entry_results, table_field);
 for i = 1:numel(entry_results)
-    metric_values = entry_results(i).aggregate_table.(metric_name);
+    source_table = entry_results(i).(table_field);
+    metric_values = source_table.(metric_name);
     if filter_hybrid_rows && ismember('n_subagg', ...
-            entry_results(i).aggregate_table.Properties.VariableNames)
-        hybrid_mask = entry_results(i).aggregate_table.n_subagg > 0 | ...
-            ~isfinite(entry_results(i).aggregate_table.n_subagg);
+            source_table.Properties.VariableNames)
+        hybrid_mask = source_table.n_subagg > 0 | ...
+            ~isfinite(source_table.n_subagg);
         metric_values = metric_values(hybrid_mask);
     end
     metric_values = metric_values(isfinite(metric_values));
@@ -933,6 +1101,28 @@ if ~has_values
     error('PFAL:main_tem_analysis_v1:EmptyPlotMetric', ...
         'Figure "%s" requires metric "%s", but no finite values are available.', ...
         figure_name, metric_name);
+end
+
+end
+
+function assert_required_morphology_metric(entry_results, metric_name, ...
+    figure_name)
+
+has_values = false;
+for i = 1:numel(entry_results)
+    morphology_table = entry_results(i).morphology_table;
+    if ~ismember(metric_name, morphology_table.Properties.VariableNames)
+        error('PFAL:main_tem_analysis_v1:MissingMorphologyMetric', ...
+            ['Figure "%s" requires morphology metric "%s", but entry ', ...
+            '"%s" does not contain it.'], ...
+            figure_name, metric_name, entry_results(i).entry.id);
+    end
+    has_values = has_values || any(isfinite(morphology_table.(metric_name)));
+end
+if ~has_values
+    error('PFAL:main_tem_analysis_v1:EmptyMorphologyMetric', ...
+        ['Figure "%s" requires morphology metric "%s", but no finite ', ...
+        'values are available.'], figure_name, metric_name);
 end
 
 end
@@ -1113,6 +1303,46 @@ summary_table = table(entry_id, entry_label, repmat({metric_label}, ...
 
 end
 
+function summary_table = build_exact_subaggregate_count_summary(entry_results)
+
+% Include zero-frequency integer counts so the exported table reproduces
+% the complete support used by the mirrored distribution.
+valid_values = cell(numel(entry_results), 1);
+maximum_count = 0;
+for i = 1:numel(entry_results)
+    values = double(entry_results(i).morphology_table.n_subagg);
+    values = values(isfinite(values) & values >= 1 & values == round(values));
+    valid_values{i} = values(:);
+    if ~isempty(values)
+        maximum_count = max(maximum_count, max(values));
+    end
+end
+if maximum_count < 1
+    summary_table = table(cell(0, 1), cell(0, 1), zeros(0, 1), ...
+        zeros(0, 1), zeros(0, 1), zeros(0, 1), ...
+        'VariableNames', {'entry_id','entry_label','n_subagg', ...
+        'valid_n','count','frequency_percent'});
+    return
+end
+
+support = (1:maximum_count).';
+rows = cell(numel(entry_results), 1);
+for i = 1:numel(entry_results)
+    values = valid_values{i};
+    counts = arrayfun(@(value) nnz(values == value), support);
+    valid_n = numel(values);
+    rows{i} = table( ...
+        repmat({entry_results(i).entry.id}, maximum_count, 1), ...
+        repmat({entry_results(i).entry.label}, maximum_count, 1), ...
+        support, repmat(valid_n, maximum_count, 1), counts, ...
+        100 * counts / max(valid_n, 1), ...
+        'VariableNames', {'entry_id','entry_label','n_subagg', ...
+        'valid_n','count','frequency_percent'});
+end
+summary_table = vertcat(rows{:});
+
+end
+
 function frequency_table = build_binned_frequency_summary(entry_results, ...
     value_source, bins, metric_name)
 
@@ -1152,10 +1382,10 @@ function values = frequency_metric_values(entry_result, value_source)
 
 switch value_source
     case 'n_subagg'
-        values = entry_result.aggregate_table.n_subagg;
+        values = entry_result.morphology_table.n_subagg;
         values = values(isfinite(values) & values >= 1);
     case 'collapse_fraction'
-        values = collapse_fraction_values(entry_result.aggregate_table, ...
+        values = collapse_fraction_values(entry_result.morphology_table, ...
             entry_result.entry.id);
     otherwise
         error('PFAL:main_tem_analysis_v1:UnknownFrequencyMetric', ...
@@ -1179,7 +1409,7 @@ diagnostic = {};
 optional_metrics = {'n_subagg', 'n_colaps', 'ca', 'zbar_opt', 'sbar_opt'};
 
 for i = 1:numel(entry_results)
-    agg_table = entry_results(i).aggregate_table;
+    agg_table = entry_results(i).morphology_table;
     missing = {};
     for j = 1:numel(optional_metrics)
         metric = optional_metrics{j};
@@ -1223,6 +1453,8 @@ for i = 1:numel(entry_results)
         switch count_kind
             case 'primary'
                 n_value = height(entry_results(i).primary_table);
+            case 'morphology_table'
+                n_value = height(entry_results(i).morphology_table);
             otherwise
                 n_value = height(entry_results(i).aggregate_table);
         end
@@ -1248,6 +1480,29 @@ for i = 1:numel(entry_results)
         hybrid_mask = entry_results(i).aggregate_table.n_subagg > 0 | ...
             ~isfinite(entry_results(i).aggregate_table.n_subagg);
         metric_values = metric_values(hybrid_mask);
+    end
+    values = [values; metric_values(:)]; %#ok<AGROW>
+end
+values = values(isfinite(values));
+
+end
+
+function values = collect_morphology_metric(entry_results, metric_name, varargin)
+
+filter_hybrid_rows = false;
+if nargin > 2
+    filter_hybrid_rows = varargin{1};
+end
+
+values = [];
+for i = 1:numel(entry_results)
+    morphology_table = entry_results(i).morphology_table;
+    metric_values = morphology_table.(metric_name);
+    if filter_hybrid_rows && ismember('n_subagg', ...
+            morphology_table.Properties.VariableNames)
+        valid_rows = morphology_table.n_subagg > 0 | ...
+            ~isfinite(morphology_table.n_subagg);
+        metric_values = metric_values(valid_rows);
     end
     values = [values; metric_values(:)]; %#ok<AGROW>
 end
@@ -1418,7 +1673,14 @@ if nargin < 3
     create_axes = true;
 end
 font_name = resolve_font(cfg_tem.plots.font);
-fig = figure('Visible', cfg_tem.plots.visible, 'Color', 'white', ...
+figure_visibility = cfg_tem.plots.visible;
+if cfg_tem.plots.export
+    % Off-screen construction prevents the monitor work area from constraining
+    % the configured publication aspect ratio. The requested window visibility
+    % is restored after export.
+    figure_visibility = 'off';
+end
+fig = figure('Visible', figure_visibility, 'Color', 'white', ...
     'Position', figure_cfg.position, ...
     'DefaultAxesFontName', font_name, ...
     'DefaultTextFontName', font_name);
@@ -1441,6 +1703,9 @@ set(ax, 'Box', logical_to_on_off(cfg_tem.plots.axes.box), ...
     'FontWeight', cfg_tem.plots.font.weight, ...
     'TickLabelInterpreter', cfg_tem.plots.font.interpreter, ...
     'LineWidth', cfg_tem.plots.axis_line_width)
+if isprop(ax, 'Toolbar') && ~isempty(ax.Toolbar)
+    ax.Toolbar.Visible = 'off';
+end
 
 end
 
@@ -1605,6 +1870,28 @@ edges = cumsum(weights / sum(weights));
 edges(end) = 1;
 r = rand(n_samples, 1);
 idx = arrayfun(@(x) find(edges >= x, 1, 'first'), r);
+
+end
+
+function [support, matrix] = exact_count_frequency_matrix( ...
+    frequency_table, entry_results)
+
+support = unique(frequency_table.n_subagg, 'sorted');
+matrix = zeros(numel(support), numel(entry_results));
+for i = 1:numel(entry_results)
+    entry_id = entry_results(i).entry.id;
+    rows = strcmp(frequency_table.entry_id, entry_id);
+    entry_support = frequency_table.n_subagg(rows);
+    entry_frequency = frequency_table.frequency_percent(rows);
+    [entry_support, order] = sort(entry_support);
+    entry_frequency = entry_frequency(order);
+    if ~isequal(entry_support, support)
+        error('PFAL:main_tem_analysis_v1:IncompleteExactFrequency', ...
+            ['The exact-frequency summary for condition "%s" does not ', ...
+            'cover the common integer support.'], entry_id);
+    end
+    matrix(:, i) = entry_frequency;
+end
 
 end
 
@@ -1808,6 +2095,10 @@ if cfg_tem.plots.export
         savefig(fig, fullfile(cfg_tem.outputs.results_root, ...
             sprintf('%s.fig', name)))
     end
+end
+if strcmpi(cfg_tem.plots.visible, 'on')
+    fig.Visible = 'on';
+    drawnow
 end
 
 end
