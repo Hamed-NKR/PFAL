@@ -26,6 +26,8 @@ if isempty(conditions)
     error('PFAL:RUN_MAIN_VALIDATION:NoEnabledConditions', ...
         'No enabled validation conditions were found in the config.');
 end
+experimental_relation_summary = fit_experimental_mass_mobility( ...
+    conditions, cfg.fits.experimental_rho_eff_vs_dm);
 
 %% Build both validation panels and quantitative comparisons
 
@@ -59,6 +61,10 @@ end
 writetable(metrics_table, fullfile(run_dir, 'validation_metrics.csv'));
 writetable(prediction_table, fullfile(run_dir, 'validation_predictions.csv'));
 writetable(condition_summary, fullfile(run_dir, 'condition_summary.csv'));
+if ~isempty(experimental_relation_summary)
+    writetable(experimental_relation_summary, fullfile(run_dir, ...
+        cfg.outputs.experimental_summary_csv));
+end
 write_json(fullfile(run_dir, 'resolved_config.json'), cfg);
 
 manifest = build_manifest(cfg, source_info, density_source_data.metadata, ...
@@ -68,12 +74,14 @@ write_json(fullfile(run_dir, 'run_manifest.json'), manifest);
 fit_curves = struct('dpp_vs_da', dpp_fits, ...
     'rho_eff_vs_dm', density_fits);
 save(fullfile(run_dir, 'validation_results.mat'), 'metrics_table', ...
-    'prediction_table', 'condition_summary', 'fit_curves', 'manifest', '-v7.3');
+    'prediction_table', 'condition_summary', 'experimental_relation_summary', ...
+    'fit_curves', 'manifest', '-v7.3');
 
 result = struct();
 result.metrics = metrics_table;
 result.predictions = prediction_table;
 result.condition_summary = condition_summary;
+result.experimental_relation_summary = experimental_relation_summary;
 result.fit_curves = fit_curves;
 result.figures = struct('dpp_vs_da', figure_dpp, ...
     'rho_eff_vs_dm', figure_density);
@@ -176,6 +184,111 @@ for i = 1:numel(enabled)
         end
     end
 end
+
+end
+
+function summary = fit_experimental_mass_mobility(conditions, fit_cfg)
+%FIT_EXPERIMENTAL_MASS_MOBILITY Fit measured density trends once per condition.
+
+if ~fit_cfg.enabled
+    summary = table();
+    return
+end
+
+included = arrayfun(@(condition) condition.include.rho_eff_vs_dm && ...
+    ~isempty(condition.effective_density), conditions);
+density_conditions = conditions(included);
+if isempty(density_conditions)
+    error('PFAL:RUN_MAIN_VALIDATION:NoExperimentalDensityConditions', ...
+        'No enabled conditions contain experimental effective-density data.');
+end
+
+valid_dm = cell(numel(density_conditions), 1);
+valid_rho = cell(numel(density_conditions), 1);
+for i = 1:numel(density_conditions)
+    data = density_conditions(i).effective_density;
+    dm = double(data.mobility_mode_nm(:));
+    rho = double(data.effective_density_kg_m3(:));
+    valid = isfinite(dm) & dm > 0 & isfinite(rho) & rho > 0;
+    valid_dm{i} = dm(valid);
+    valid_rho{i} = rho(valid);
+    if isempty(valid_dm{i})
+        error('PFAL:RUN_MAIN_VALIDATION:NoValidExperimentalDensity', ...
+            'Condition "%s" has no positive finite density observations.', ...
+            density_conditions(i).id);
+    end
+end
+
+switch fit_cfg.support_mode
+    case 'common'
+        support = [max(cellfun(@min, valid_dm)), ...
+            min(cellfun(@max, valid_dm))];
+    case 'explicit'
+        support = fit_cfg.support_limits_nm;
+end
+if support(2) <= support(1)
+    error('PFAL:RUN_MAIN_VALIDATION:EmptyExperimentalCommonSupport', ...
+        'The configured experimental density conditions have no shared support.');
+end
+
+rows = cell(numel(density_conditions), 1);
+for i = 1:numel(density_conditions)
+    dm = valid_dm{i};
+    rho = valid_rho{i};
+    in_support = dm >= support(1) & dm <= support(2);
+    x = log10(dm(in_support));
+    y = log10(rho(in_support));
+    n_fit = numel(x);
+    degree = fit_cfg.degree;
+    fit_status = 'fit_enabled';
+    intercept = NaN;
+    slope = NaN;
+    mass_mobility_exponent = NaN;
+    ci = [NaN NaN];
+    rmse = NaN;
+    r_squared = NaN;
+
+    if n_fit <= degree + 1
+        fit_status = 'insufficient_data';
+    else
+        design = [ones(n_fit, 1), x];
+        if rank(design) < size(design, 2)
+            fit_status = 'singular_design';
+        else
+            coefficients = design \ y;
+            predicted = design * coefficients;
+            residual = y - predicted;
+            dof = n_fit - size(design, 2);
+            residual_variance = sum(residual .^ 2) / dof;
+            covariance = residual_variance * pinv(design' * design);
+            slope_se = sqrt(covariance(2, 2));
+            t_critical = tinv((1 + fit_cfg.confidence_level) / 2, dof);
+            intercept = coefficients(1);
+            slope = coefficients(2);
+            mass_mobility_exponent = slope + 3;
+            ci = mass_mobility_exponent + ...
+                [-1 1] * t_critical * slope_se;
+            rmse = sqrt(mean(residual .^ 2));
+            total_variation = sum((y - mean(y)) .^ 2);
+            if total_variation > 0
+                r_squared = 1 - sum(residual .^ 2) / total_variation;
+            end
+        end
+    end
+
+    rows{i} = table(string(density_conditions(i).id), ...
+        string(density_conditions(i).label), string(fit_status), ...
+        string(fit_cfg.support_mode), support(1), support(2), ...
+        numel(dm), n_fit, degree, fit_cfg.confidence_level, intercept, ...
+        slope, mass_mobility_exponent, ci(1), ci(2), rmse, r_squared, ...
+        'VariableNames', {'condition_id', 'condition_label', 'fit_status', ...
+        'support_mode', 'support_low_nm', 'support_high_nm', ...
+        'n_experimental', 'n_fit', 'degree', 'confidence_level', ...
+        'intercept_log10', 'slope_log10', 'mass_mobility_exponent', ...
+        'ci_low_mass_mobility_exponent', ...
+        'ci_high_mass_mobility_exponent', 'rmse_log10', 'r_squared'});
+end
+summary = vertcat(rows{:});
 
 end
 

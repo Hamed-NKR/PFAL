@@ -163,6 +163,13 @@
       "prior_v_scale": 100,
       "prior_a": 3,
       "prior_b": 1
+    },
+    "experimental_rho_eff_vs_dm": {
+      "enabled": true,
+      "degree": 1,
+      "support_mode": "common",
+      "support_limits_nm": [],
+      "confidence_level": 0.95
     }
   },
   "figures": {
@@ -216,6 +223,7 @@
     "png": true,
     "png_resolution": 600,
     "png_source": "pdf",
-    "save_figures": false
+    "save_figures": false,
+    "experimental_summary_csv": "experimental_mass_mobility_summary.csv"
   }
 }

@@ -17,4 +17,5 @@ cfg_valid = UTILS.LOAD_MAIN_VALID_CONFIG;
 validation_result = UTILS.RUN_MAIN_VALIDATION(cfg_valid);
 validation_metrics = validation_result.metrics;
 validation_predictions = validation_result.predictions;
-
+experimental_relation_summary = ...
+    validation_result.experimental_relation_summary;
