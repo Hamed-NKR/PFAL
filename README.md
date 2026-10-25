@@ -208,7 +208,7 @@ The script name is not a PowerShell command. From PowerShell, launch MATLAB in
 batch mode instead:
 
 ```powershell
-matlab -batch "cd('D:\Hamed\Personal_Projects\Git\PFAL'); main_tem_analysis_v1"
+matlab -batch "cd('<path to PFAL>'); main_tem_analysis_v1"
 ```
 
 The figure configuration controls output formats and resolution, typography,
