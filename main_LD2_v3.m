@@ -5,17 +5,20 @@ close all
 
 %% Load scaled first-stage LD aggregates %%
 
-% address of data library to be imported
-fdir = 'D:\Hamed\CND\PhD\Publication\Paper2\Library_Final\1_35\Scale';
-fname = 'LD1__gamma_1_35__Scaled';
-varname = 'pars_out';
+% Load the LD2 workflow inputs from a single JSON config. This keeps local
+% dataset paths, simulation parameters, transport settings, and result paths
+% outside the MATLAB source.
+cfg_ld2 = UTILS.LOAD_MAIN_LD2_CONFIG;
+cfg_dataset = cfg_ld2.dataset;
+cfg_results = cfg_ld2.results;
+cfg_sim = cfg_ld2.simulation;
+cfg_projection = cfg_ld2.projection;
+cfg_transport = cfg_ld2.transport;
 
-% load previously scaled stage 1 aggregate data
-load(strcat(fdir, '\', fname, '.mat'), varname)
-
-eval(['pars_LD2' ' = ' varname ';']); % rename loaded structure
-
-eval(['clear ', varname]) % remove older name
+% Load previously scaled first-stage aggregates using the variable declared
+% in the source-specific LD2 config. main_scatter_v8 and main_scale_v2 both
+% write this payload as pars_out.
+[pars_LD2, dataset_src] = UTILS.LOAD_MAIN_LD2_DATASET(cfg_dataset);
 
 if ~isfield(pars_LD2, 'pp')
     disp(' ')
@@ -24,14 +27,15 @@ end
 
 %% initialize simulation variables %%
 
-k_max = 1e6; % maximum number of iterations
+k_max = cfg_sim.k_max; % maximum number of iterations
 
 % assign fractions of aggregates (or times) for second-stage data to be saved
-r_n_agg = [1, 0.4, 0.2, 0.1, 0.05];
+r_n_agg = cfg_sim.r_n_agg;
+checkpoint_interval = cfg_sim.checkpoint_interval;
 
 % resolution of Monte Carlo method for projected area calculation
-n_mc_prj = 1e2;
-n_ang_prj = 5;
+n_mc_prj = cfg_projection.n_mc;
+n_ang_prj = cfg_projection.n_ang;
 
 % initial number of aggregates
 n0_agg = length(pars_LD2.pp);
@@ -60,28 +64,29 @@ if ~isfield(pars_LD2, 'dg')
     pars_LD2 = PAR.SIZING(pars_LD2);
 end
 
-% read the batch file for fluid and particle input properties
-[params_ud, params_const] = TRANSP.INIT_PARAMS('LD2_Params');
+% Build the fluid and domain parameter tables from the JSON config.
+[params_domain, params_const, fl] = UTILS.LD2_PARAMS_FROM_CONFIG( ...
+    cfg_transport.domain, cfg_transport.fluid);
+fprintf('LD2 config: %s\n', cfg_ld2.config_file);
+fprintf('LD2 requested volume fraction: %.6g\n', params_domain.Value(1));
 
-% make the fluid structure
-[~, fl] = TRANSP.INIT_DOM(params_ud, params_const);
-
-% change the fluid properties to room condition
-opts_fl.amb = 'room';
+% apply the configured ambient fluid property model
+opts_fl = cfg_transport.fluid_options;
 [fl.mu, fl.lambda] = TRANSP.FLPROPS(fl, params_const, opts_fl);
 
 % calculate initial mobility properties
-opts_mobil.c_dt = 100; % adjust the timesteps
-opts_mobil.mtd = 'interp'; % choose the method of mobility size calculation
+opts_mobil = cfg_transport.mobility_options;
 pars_LD2 = TRANSP.MOBIL(pars_LD2, fl, params_const, opts_mobil);
 
 % Assign random initial locations and velocities to aggregates
-opts_loc.vf = 'on';
-[pars_LD2, params_ud] = PAR.INIT_LOC(pars_LD2, params_ud, [], opts_loc);
+opts_loc = cfg_transport.location_options;
+[pars_LD2, params_domain] = PAR.INIT_LOC(pars_LD2, params_domain, [], opts_loc);
+fl.size = params_domain.Value(2:4);
+fprintf('LD2 effective domain size after volume-fraction adjustment: [%.6g %.6g %.6g] m\n', ...
+    params_domain.Value(2), params_domain.Value(3), params_domain.Value(4));
 pars_LD2.v = PAR.INIT_VEL(pars_LD2.pp, pars_LD2.n, fl.temp, params_const);
 
-opts_grow.indupdate = 'off'; % flag to update aggregate ids upon each...
-% ...collision (disabled to track hybridty)
+opts_grow = cfg_transport.growth_options;
 
 % make a placeholder for temporal ensemble data
 ensdata.t = zeros(k_max, 1);
@@ -125,8 +130,9 @@ parsdata(1).dg = pars_LD2.dg;
 parsdata(1).n_hyb = pars_LD2.n_hyb;
 
 % make a directory to save the workspace data
-dir_wsp = strcat('outputs\', 'LD2-', datestr(datetime('today')),...
-    '_', fname);
+run_date = char(datetime('today', 'Format', 'yyyy-MM-dd'));
+dir_wsp = fullfile(cfg_results.root, strcat(cfg_results.run_label, '__', ...
+    run_date));
 if ~isfolder(dir_wsp)
     mkdir(dir_wsp); % if it doesn't exist, create the directory
 end
@@ -149,7 +155,7 @@ while (k <= k_max) && (ind_dat <= n_dat) && (length(pars_LD2.n) > 1)
     [pars_LD2, delt] = TRANSP.MARCH(pars_LD2, fl, params_const);
 
     % apply periodic boundary conditions
-    pars_LD2 = TRANSP.PBC(params_ud.Value(2:4), pars_LD2);
+    pars_LD2 = TRANSP.PBC(params_domain.Value(2:4), pars_LD2);
 
     % join colliding particles
     pars_LD2 = COL.GROW(pars_LD2, opts_grow);
@@ -199,11 +205,10 @@ while (k <= k_max) && (ind_dat <= n_dat) && (length(pars_LD2.n) > 1)
 
     % save workspace once in a while (to recover iterations in case they...
     % ...are interrupted)
-    if mod(k,1000) == 1
-        dt = datestr(datetime('now')); % current date and time
-        dt = regexprep(dt, ':', '-');
-        dt = regexprep(dt, ' ', '_');
-        save(strcat(dir_wsp, '\', dt, '.mat'))
+    if mod(k, checkpoint_interval) == 1
+        dt = char(datetime('now', 'Format', 'yyyy-MM-dd_HH-mm-ss')); % current date and time
+        save(fullfile(dir_wsp, strcat(cfg_results.checkpoint_prefix, '__', ...
+            dt, '.mat')), '-v7.3')
     end
 
     UTILS.TEXTBAR([k, k_max]); % update progress textbar
@@ -225,5 +230,7 @@ ensdata.da(k:end,:) = [];
 ensdata.dm(k:end,:) = [];
 
 % save the final workspace
-save(strcat(dir_wsp, '\', 'LD2_', dt, '_Final', '.mat'))
+dt_final = char(datetime('now', 'Format', 'yyyy-MM-dd_HH-mm-ss'));
+save(fullfile(dir_wsp, strcat(cfg_results.final_prefix, '__', ...
+    dt_final, '.mat')), '-v7.3')
 

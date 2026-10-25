@@ -1,0 +1,54 @@
+{
+    "dataset":  {
+                    "id":  "scaled_aggs_for_LD2_from_main_scale",
+                    "file":  "../../data/main_scale/scaled_aggs_for_LD2_from_main_scale.mat",
+                    "variable":  "pars_out"
+                },
+    "results":  {
+                    "root":  "../../results/main_ld2_from_main_scale",
+                    "run_label":  "LD2__scaled_aggs_for_LD2_from_main_scale",
+                    "checkpoint_prefix":  "LD2__from_main_scale__checkpoint",
+                    "final_prefix":  "LD2__from_main_scale__final"
+                },
+    "simulation":  {
+                       "k_max":  1000000,
+                       "r_n_agg":  [
+                                       1.0,
+                                       0.4,
+                                       0.2,
+                                       0.1,
+                                       0.05
+                                   ],
+                       "checkpoint_interval":  1000
+                   },
+    "projection":  {
+                       "n_mc":  100,
+                       "n_ang":  5
+                   },
+    "transport":  {
+                      "domain":  {
+                                     "volume_fraction":  0.0001,
+                                     "size":  [
+                                                  5E-06,
+                                                  5E-06,
+                                                  5E-06
+                                              ]
+                                 },
+                      "fluid":  {
+                                    "temperature":  298
+                                },
+                      "fluid_options":  {
+                                            "amb":  "room"
+                                        },
+                      "mobility_options":  {
+                                               "c_dt":  100,
+                                               "mtd":  "interp"
+                                           },
+                      "location_options":  {
+                                               "vf":  "on"
+                                           },
+                      "growth_options":  {
+                                             "indupdate":  "off"
+                                         }
+                  }
+}

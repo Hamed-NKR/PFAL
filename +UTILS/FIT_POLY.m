@@ -37,6 +37,7 @@ function [yfit, xfit, bounds_yfit, afit, bounds_afit, out] = FIT_POLY(x, y, grou
 %   'YTransform'  : 'log10' or 'none' (default: 'log10')
 %   'NSamples'    : number of posterior draws for Bayesian backend (default: 1000)
 %   'SlopeOffset' : constant added to the slope output (default: 0)
+%   'CredibleLevel': central posterior interval probability (default: 0.95)
 %
 % Prior hyperparameters (Bayesian backend):
 %   'PriorMu'     : prior mean of regression coefficients (default: zeros)
@@ -48,11 +49,11 @@ function [yfit, xfit, bounds_yfit, afit, bounds_afit, out] = FIT_POLY(x, y, grou
 % Outputs:
 %   xfit          : predictor samples in original x-units
 %   yfit          : posterior mean of fitted response in original y-units
-%   bounds_yfit   : 95% credible interval for fitted response in original y-units
+%   bounds_yfit   : requested credible interval for the fitted response
 %                  (two columns: [lower, upper])
 %   afit          : posterior mean slope in transformed coordinates, evaluated at xfit,
 %                  plus SlopeOffset
-%   bounds_afit   : 95% credible interval for slope (two columns: [lower, upper]),
+%   bounds_afit   : requested credible interval for slope ([lower, upper]),
 %                  plus SlopeOffset
 %   out           : struct of diagnostic outputs (posterior params, draws, options)
 % ----------------------------------------------------------------------- %
@@ -87,6 +88,7 @@ opt.XTransform  = 'log10';
 opt.YTransform  = 'log10';
 opt.NSamples    = 1000;
 opt.SlopeOffset = 0;
+opt.CredibleLevel = 0.95;
 
 % Prior defaults match the original function spirit: diffuse Normal prior and
 % moderately informative inverse-gamma on sigma^2.
@@ -122,6 +124,8 @@ if ~isempty(varargin)
                 opt.NSamples = value;
             case 'slopeoffset'
                 opt.SlopeOffset = value;
+            case 'crediblelevel'
+                opt.CredibleLevel = value;
 
             case 'priormu'
                 opt.PriorMu = value;
@@ -152,6 +156,14 @@ nsamp = opt.NSamples;
 if ~isscalar(nsamp) || nsamp < 100 || nsamp ~= floor(nsamp)
     error('FIT_POLY:BadNSamples', 'NSamples must be an integer >= 100.');
 end
+
+credible_level = opt.CredibleLevel;
+if ~isscalar(credible_level) || ~isfinite(credible_level) || ...
+        credible_level <= 0 || credible_level >= 1
+    error('FIT_POLY:BadCredibleLevel', ...
+        'CredibleLevel must be a finite scalar strictly between 0 and 1.');
+end
+tail_percent = 50 * (1 - credible_level);
 
 %% ----------------------------- transforms -------------------------------- %
 
@@ -344,8 +356,8 @@ t_pred_samples = Xfit_full * beta_draws;
 
 % Summarize fitted curve in transformed space.
 tfit_mean  = mean(t_pred_samples, 2);
-tfit_lower = prctile(t_pred_samples, 2.5, 2);
-tfit_upper = prctile(t_pred_samples, 97.5, 2);
+tfit_lower = prctile(t_pred_samples, tail_percent, 2);
+tfit_upper = prctile(t_pred_samples, 100 - tail_percent, 2);
 
 % Transform back to original space.
 xfit = iX(zfit);
@@ -370,7 +382,8 @@ slope_samples = Dbasis * beta_poly_draws;      % resol x nsamp
 
 % Summarize slope and apply slope offset.
 afit = mean(slope_samples, 2) + opt.SlopeOffset;
-bounds_afit = [prctile(slope_samples, 2.5, 2), prctile(slope_samples, 97.5, 2)] + opt.SlopeOffset;
+bounds_afit = [prctile(slope_samples, tail_percent, 2), ...
+    prctile(slope_samples, 100 - tail_percent, 2)] + opt.SlopeOffset;
 
 % Informational warning when not log–log. The slope is still returned, but its
 % meaning is the derivative in the transformed coordinates (t vs z), not
